@@ -1,8 +1,8 @@
 Author: Dr. Fernando Studart
-Center for Heart Lung Innovation – University of British Columbia
+Center for Heart Lung Innovation â€“ University of British Columbia
 E-mail: Fernando.Studart@hli.ubc.ca
 
-Part I – QIIME2® (Version used: 2018.8)
+Part I â€“ QIIME2Â® (Version used: 2018.8)
 #Place all fastq.gz files (both forward and reverse files from all samples) into the same folder; in this example: Sputum-112-Samples.
 #Note: All sequencing data already demultiplexed.
 #Importing Sputum Sequencing Data
@@ -12,7 +12,7 @@ qiime tools import \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
   --output-path Sputum.qza
 
- #Obtaining summary of sequencing data from sputum samples after being imported into QIIME2®
+ #Obtaining summary of sequencing data from sputum samples after being imported into QIIME2Â®
 qiime demux summarize \
   --i-data Sputum.qza \
   --o-visualization Sputum.qzv
@@ -43,14 +43,14 @@ qiime metadata tabulate \
 
 #Extraction Negative Controls
 #Place all fastq.gz files (both forward and reverse files from the seven extraction negative controls) into the same folder; in this example: EN-7-Samples
-#Note: All sequencing data already demultiplexed
+#Note: All sequencing data already demultiplexed!
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
   --input-path EN-7-Samples \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
   --output-path EN.qza
 
-#Obtaining summary of sequencing data from extraction negative controls after being imported into QIIME2®
+#Obtaining summary of sequencing data from extraction negative controls after being imported into QIIME2Â®
 qiime demux summarize \
   --i-data EN.qza \
   --o-visualization EN.qzv
@@ -89,8 +89,9 @@ qiime feature-table summarize \
   --i-table EN-data2-contingency-filtered-table.qza \
   --o-visualization EN-data2-contingency-filtered-table.qzv
 
-# Visualize and export features (i.e., ASVs) observed in EN-data2-contingency-filtered-table.qza using Qiime2View => save as Sequences-at-least3-controls.tsv
-# Keep only ASVs present in Sequences-at-least3-controls.tsv from EN-rep-seqs.qza
+# Visualize and export features (i.e., ASVs) observed in EN-data2-contingency-filtered-table.qza using Qiime2View 
+# After exporting, save this new file as Sequences-at-least3-controls.tsv
+# Keep only ASVs (EN-rep-seqs.qza) present in Sequences-at-least3-controls.tsv 
 qiime feature-table filter-seqs \
 --i-data EN-rep-seqs.qza \
 --m-metadata-file Sequences-at-least3-controls.tsv \
@@ -111,7 +112,7 @@ qiime metadata tabulate \
   --m-input-file Taxonomy-EN-rep-seqs-atleast3-controls.qza \
   --o-visualization Taxonomy-EN-rep-seqs-atleast3-controls.qzv
 
-#Removing ASVs observed in Sequences-at-least3-controls.tsv from Sputum-dada2.qza
+#Removing ASVs (Sputum-dada2.qza) observed in Sequences-at-least3-controls.tsv
 qiime feature-table filter-features \
   --i-table Sputum-dada2.qza \
   --m-metadata-file Sequences-at-least3-controls.tsv \
@@ -122,7 +123,7 @@ qiime feature-table summarize \
   --i-table Filtered-Sputum-dada2.qza \
   --o-visualization Filtered-Sputum-dada2.qzv
 
-#Removing noise (excluding singletons and low abundant features – frequency < 10 across all samples)
+#Removing noise (excluding singletons and low abundant features â€“ frequency < 10 across all samples)
 qiime feature-table filter-features \
   --i-table Filtered-Sputum-dada2.qza \
   --p-min-samples 2 \
@@ -133,13 +134,15 @@ qiime feature-table summarize \
   --i-table Filtered-Sputum-table-contingency-table.qza \
   --o-visualization Filtered-Sputum-table-contingency-table.qzv
 
-# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View => save as Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv
-# Keep only ASVs present in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv from Sputum-rep-seqs.qza
+# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View
+# After exporting, save this new file as "Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv"
+# Keep only ASVs (Sputum-rep-seqs.qza) observed in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv 
 qiime feature-table filter-seqs \
 --i-data Sputum-rep-seqs.qza \
 --m-metadata-file Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv \
 --p-no-exclude-ids \
 --o-filtered-data Filtered-Sputum-rep-seqs.qza
+
 qiime feature-table tabulate-seqs \
   --i-data Filtered-Sputum-rep-seqs.qza \
   --o-visualization Filtered-Sputum-rep-seqs.qzv
@@ -180,8 +183,8 @@ qiime feature-table summarize \
   --o-visualization Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
 
-# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv using Qiime2View => save as Final-Sputum-features-to-keep.tsv
-# Keep only ASVs found in Final-Sputum-features-to-keep.tsv from Filtered-Sputum-rep-seqs.qza
+# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza using Qiime2View => save as Final-Sputum-features-to-keep.tsv
+# Keep only ASVs (Filtered-Sputum-rep-seqs.qza) present in Final-Sputum-features-to-keep.tsv
 qiime feature-table filter-seqs \
 --i-data Filtered-Sputum-rep-seqs.qza \
 --m-metadata-file Final-Sputum-features-to-keep.tsv \
@@ -196,6 +199,7 @@ qiime feature-table tabulate-seqs \
 qiime alignment mafft \
   --i-sequences Final-Sputum-rep-seqs.qza \
   --o-alignment aligned-Final-Sputum-rep-seqs.qza
+
 qiime alignment mask \
   --i-alignment aligned-Final-Sputum-rep-seqs.qza \
   --o-masked-alignment masked-Final-Sputum-rep-seqs.qza 
@@ -225,7 +229,7 @@ qiime taxa barplot \
   --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
   --o-visualization Final-taxa-bar-plots-Silva132-with-phylum-rarefaction.qzv
 
-#Alpha and beta diversity analyses – 102 patients 
+#Alpha and beta diversity analyses â€“ 102 patients 
 #Rarefaction cut off: 6,430 (lowest number of reads observed across all samples)
 qiime diversity core-metrics-phylogenetic \
   --i-phylogeny rooted-tree-Final-Sputum.qza \
@@ -257,10 +261,11 @@ qiime diversity alpha-group-significance \
   --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
   --o-visualization evenness-group-significance.qzv
 
-#Note: export the raw data for each alpha diversity metric and save into one single file “RTC-sputum-alpha-diversity-from-Qiime2.txt”
+#Note: export the raw data for each alpha diversity metric and save into one single file 
 #There is an option to download the raw data when visualizing each .qzv file using Qiime2View.
+#Here, we are saving as â€œRTC-sputum-alpha-diversity-from-Qiime2.txtâ€
 
-#Beta diversity – Unweighted Unifrac
+#Beta diversity â€“ Unweighted Unifrac
 qiime diversity beta-group-significance \
   --i-distance-matrix unweighted_unifrac_distance_matrix.qza \
   --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
@@ -276,7 +281,7 @@ qiime diversity beta-group-significance \
   --o-visualization Mortality-weighted-unifrac-significance.qzv \
   --p-pairwise
 
-#Beta-diversity – Bray Curtis
+#Beta-diversity â€“ Bray Curtis
 qiime diversity beta-group-significance \
   --i-distance-matrix bray_curtis_distance_matrix.qza \
   --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
@@ -405,12 +410,13 @@ qiime tools export \
  --input-path Final-Taxonomy132-after-phylum-102-samples.qza \
  --output-path Exported
 
-#Change the first line of taxonomy.tsv (i.e., the header) to: #OTUID; taxonomy; confidence ==> save as taxonomy1.tsv
-#Editing taxonomy1.tsv to remove D_0; D_1,… (Optional)
+#Change the first line of taxonomy.tsv (i.e., the header) to: #OTUID; taxonomy; confidence
+#Save this new file as "taxonomy1.tsv"
+#Editing taxonomy1.tsv to remove D_0; D_1,â€¦ (Optional)
 #Adding taxonomic information to BIOM file (102-Sputum-not-rarefied.biom)
 biom add-metadata -i Exported/102-Sputum-not-rarefied.biom -o Exported/102-Sputum-not-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
 
-#Exporting Feature Table – rarefied (Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza) as BIOM file
+#Exporting Feature Table â€“ rarefied (Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza) as BIOM file
 qiime tools export \
  --input-path Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza \
  --output-path Exported
@@ -421,22 +427,23 @@ mv Exported/feature-table.biom Exported/102-Sputum-rarefied.biom
 #Adding taxonomic information to BIOM file (102-Sputum-rarefied.biom)
 biom add-metadata -i Exported/102-Sputum-rarefied.biom -o Exported/102-Sputum-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
 
-#Exporting Tree file (Final-Taxonomy132-after-phylum-102-samples.qza) 
+#Exporting Tree file (rooted-tree-Final-Sputum.qza) 
 qiime tools export \
  --input-path rooted-tree-Final-Sputum.qza \
  --output-path Exported
 
-Part II – R 
+Part II â€“ R 
 #Create a new folder (In our case: Sputum-Mortality-Paper-codes)
 #Copy the following files to this folder:
-1) Metadata file: 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt
+1) Metadata file: 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt (change extension from .tsv to .txt)
 2) BIOM file (rarefied): 102-Sputum-rarefied-with-taxonomy.biom (for alpha and beta diversity analyses)
 3) BIOM file (not rarefied): 102-Sputum-not-rarefied-with-taxonomy.biom (for making taxa bar plots at phylum and genus levels)
 4) Tree file: tree.nwk
-5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): RTC-sputum-alpha-diversity-from-Qiime2.txt (Optional).
+5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faithâ€™s PD - obtained from QIIME2): RTC-sputum-alpha-diversity-from-Qiime2.txt (This is Optional!)
 6) Generalized Unifrac distance matrix (alpha=0.5) exported from QIIME2: GU-distance-matrix.txt
 
 #R Code used for Sputum vs. 1-Year Mortality Analysis in AECOPD
+#Packages loaded during R session
 library(phyloseq)
 library(BiocStyle)
 library(ggplot2)
@@ -463,10 +470,10 @@ library(adespatial)
 library(ggpubr)
 library (devtools)
 packageVersion('phyloseq')
-[1] ‘1.22.3’
+[1] â€˜1.22.3â€™
 
 packageVersion('vegan')
-[1] ‘2.4.6’
+[1] â€˜2.4.6â€™
 
 #Setting working directory
 setwd("C:/Users/ferna/Desktop/Sputum-Mortality-Paper-codes")
