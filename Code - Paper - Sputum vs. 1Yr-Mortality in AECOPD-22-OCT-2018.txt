@@ -1,0 +1,1127 @@
+Author: Dr. Fernando Studart
+Center for Heart Lung Innovation – University of British Columbia
+E-mail: Fernando.Studart@hli.ubc.ca
+
+Part I – QIIME2® (Version used: 2018.8)
+#Place all fastq.gz files (both forward and reverse files from all samples) into the same folder; in this example: Sputum-112-Samples.
+#Note: All sequencing data already demultiplexed.
+#Importing Sputum Sequencing Data
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path Sputum-112-Samples \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path Sputum.qza
+
+ #Obtaining summary of sequencing data from sputum samples after being imported into QIIME2®
+qiime demux summarize \
+  --i-data Sputum.qza \
+  --o-visualization Sputum.qzv
+
+#Performing sequence quality control and feature table construction using DADA2 denoising algorithm
+#Note: the trimming options used below may be changed
+qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs Sputum.qza \
+  --o-table Sputum-dada2.qza\
+  --p-n-threads 0 \
+  --o-representative-sequences Sputum-rep-seqs.qza \
+  --p-trim-left-f 13 \
+  --p-trim-left-r 13 \
+  --p-trunc-len-f 241 \
+  --p-trunc-len-r 175 \
+  --o-denoising-stats Sputum-denoising-stats.qza
+qiime feature-table summarize \
+  --i-table Sputum-dada2.qza \
+  --o-visualization Sputum-dada2.qzv
+
+qiime feature-table tabulate-seqs \
+  --i-data Sputum-rep-seqs.qza \
+  --o-visualization Sputum-rep-seqs.qzv
+
+qiime metadata tabulate \
+  --m-input-file Sputum-denoising-stats.qza \
+  --o-visualization Sputum-denoising-stats.qzv
+
+#Extraction Negative Controls
+#Place all fastq.gz files (both forward and reverse files from the seven extraction negative controls) into the same folder; in this example: EN-7-Samples
+#Note: All sequencing data already demultiplexed
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path EN-7-Samples \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path EN.qza
+
+#Obtaining summary of sequencing data from extraction negative controls after being imported into QIIME2®
+qiime demux summarize \
+  --i-data EN.qza \
+  --o-visualization EN.qzv
+
+#Performing sequence quality control and feature table construction using DADA2 denoising algorithm
+qiime dada2 denoise-paired \
+  --i-demultiplexed-seqs EN.qza \
+  --o-table EN-dada2.qza\
+  --p-n-threads 0 \
+  --o-representative-sequences EN-rep-seqs.qza \
+  --p-trim-left-f 13 \
+  --p-trim-left-r 13 \
+  --p-trunc-len-f 241 \
+  --p-trunc-len-r 175 \
+  --o-denoising-stats EN-denoising-stats.qza
+
+qiime feature-table summarize \
+  --i-table EN-dada2.qza \
+  --o-visualization EN-dada2.qzv
+
+qiime feature-table tabulate-seqs \
+  --i-data EN-rep-seqs.qza \
+  --o-visualization EN-rep-seqs.qzv
+
+qiime metadata tabulate \
+  --m-input-file EN-denoising-stats.qza \
+  --o-visualization EN-denoising-stats.qzv
+
+#Selecting ASVs observed in at least 3 out of 7 extraction negative controls
+qiime feature-table filter-features \
+  --i-table EN-dada2.qza \
+  --p-min-samples 3 \
+  --o-filtered-table EN-data2-contingency-filtered-table.qza
+
+qiime feature-table summarize \
+  --i-table EN-data2-contingency-filtered-table.qza \
+  --o-visualization EN-data2-contingency-filtered-table.qzv
+
+# Visualize and export features (i.e., ASVs) observed in EN-data2-contingency-filtered-table.qza using Qiime2View => save as Sequences-at-least3-controls.tsv
+# Keep only ASVs present in Sequences-at-least3-controls.tsv from EN-rep-seqs.qza
+qiime feature-table filter-seqs \
+--i-data EN-rep-seqs.qza \
+--m-metadata-file Sequences-at-least3-controls.tsv \
+--p-no-exclude-ids \
+--o-filtered-data EN-rep-seqs-atleast3-controls.qza
+
+qiime feature-table tabulate-seqs \
+  --i-data EN-rep-seqs-atleast3-controls.qza \
+  --o-visualization EN-rep-seqs-atleast3-controls.qzv
+
+#Obtaining taxonomic annotations for ASVs present in EN-rep-seqs-atleast3-controls.qza
+qiime feature-classifier classify-sklearn \
+  --i-classifier Silva132-16s_99_7_levels_classifier250-myprimers.qza \
+  --i-reads EN-rep-seqs-atleast3-controls.qza \
+  --o-classification Taxonomy-EN-rep-seqs-atleast3-controls.qza
+
+qiime metadata tabulate \
+  --m-input-file Taxonomy-EN-rep-seqs-atleast3-controls.qza \
+  --o-visualization Taxonomy-EN-rep-seqs-atleast3-controls.qzv
+
+#Removing ASVs observed in Sequences-at-least3-controls.tsv from Sputum-dada2.qza
+qiime feature-table filter-features \
+  --i-table Sputum-dada2.qza \
+  --m-metadata-file Sequences-at-least3-controls.tsv \
+  --p-exclude-ids \
+  --o-filtered-table Filtered-Sputum-dada2.qza
+
+qiime feature-table summarize \
+  --i-table Filtered-Sputum-dada2.qza \
+  --o-visualization Filtered-Sputum-dada2.qzv
+
+#Removing noise (excluding singletons and low abundant features – frequency < 10 across all samples)
+qiime feature-table filter-features \
+  --i-table Filtered-Sputum-dada2.qza \
+  --p-min-samples 2 \
+  --p-min-frequency 10 \
+  --o-filtered-table Filtered-Sputum-table-contingency-table.qza
+
+qiime feature-table summarize \
+  --i-table Filtered-Sputum-table-contingency-table.qza \
+  --o-visualization Filtered-Sputum-table-contingency-table.qzv
+
+# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View => save as Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv
+# Keep only ASVs present in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv from Sputum-rep-seqs.qza
+qiime feature-table filter-seqs \
+--i-data Sputum-rep-seqs.qza \
+--m-metadata-file Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv \
+--p-no-exclude-ids \
+--o-filtered-data Filtered-Sputum-rep-seqs.qza
+qiime feature-table tabulate-seqs \
+  --i-data Filtered-Sputum-rep-seqs.qza \
+  --o-visualization Filtered-Sputum-rep-seqs.qzv
+
+#Performing taxonomic analysis (to identify ASVs with no taxonomic annotations at the phylum level)
+#Taxonomic database: Silva 132
+qiime feature-classifier classify-sklearn \
+  --i-classifier Silva132-16s_99_7_levels_classifier250-myprimers.qza \
+  --i-reads Filtered-Sputum-rep-seqs.qza \
+  --o-classification Sputum-Taxonomy132-before-phylum-annotation.qza
+
+qiime metadata tabulate \
+  --m-input-file Sputum-Taxonomy132-before-phylum-annotation.qza \
+  --o-visualization Sputum-Taxonomy132-before-phylum-annotation.qzv
+
+#Removing noise (excluding ASVs with no taxonomic annotation at the phylum level and contaminants - non-bacterial DNA)
+qiime taxa filter-table \
+  --i-table Filtered-Sputum-table-contingency-table.qza \
+  --i-taxonomy Sputum-Taxonomy132-before-phylum-annotation.qza \
+  --p-include D_1__\
+  --p-exclude mitochondria,chloroplast,archaea \
+  --o-filtered-table Filtered-Sputum-table-contingency-table-with-phylum.qza
+
+qiime feature-table summarize \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum.qza \
+  --o-visualization Filtered-Sputum-table-contingency-table-with-phylum.qzv
+
+#Removing samples with very low number of reads (these samples would be removed during rarefaction step for alpha and beta diversity analyses)
+#Samples removed: COPD-049; COPD-086; COPD-090; COPD-093.
+qiime feature-table filter-samples \
+--i-table Filtered-Sputum-table-contingency-table-with-phylum.qza \
+--m-metadata-file Samples-to-not-keep-for-rarefaction-4.tsv \
+--p-exclude-ids \
+--o-filtered-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza
+
+qiime feature-table summarize \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --o-visualization Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
+  --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
+
+# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv using Qiime2View => save as Final-Sputum-features-to-keep.tsv
+# Keep only ASVs found in Final-Sputum-features-to-keep.tsv from Filtered-Sputum-rep-seqs.qza
+qiime feature-table filter-seqs \
+--i-data Filtered-Sputum-rep-seqs.qza \
+--m-metadata-file Final-Sputum-features-to-keep.tsv \
+--p-no-exclude-ids \
+--o-filtered-data Final-Sputum-rep-seqs.qza
+
+qiime feature-table tabulate-seqs \
+  --i-data Final-Sputum-rep-seqs.qza \
+  --o-visualization Final-Sputum-rep-seqs.qzv
+
+#Making tree file (using Final-Sputum-rep-seqs.qza) 
+qiime alignment mafft \
+  --i-sequences Final-Sputum-rep-seqs.qza \
+  --o-alignment aligned-Final-Sputum-rep-seqs.qza
+qiime alignment mask \
+  --i-alignment aligned-Final-Sputum-rep-seqs.qza \
+  --o-masked-alignment masked-Final-Sputum-rep-seqs.qza 
+
+qiime phylogeny fasttree \
+  --i-alignment masked-Final-Sputum-rep-seqs.qza \
+  --o-tree unrooted-tree-Final-Sputum.qza
+
+qiime phylogeny midpoint-root \
+  --i-tree unrooted-tree-Final-Sputum.qza \
+  --o-rooted-tree rooted-tree-Final-Sputum.qza
+
+#Final taxonomic analysis
+#Taxonomic database: Silva 132
+qiime feature-classifier classify-sklearn \
+  --i-classifier Silva132-16s_99_7_levels_classifier250-myprimers.qza \
+   --i-reads Final-Sputum-rep-seqs.qza \
+  --o-classification Final-Taxonomy132-after-phylum-102-samples.qza
+
+qiime metadata tabulate \
+  --m-input-file Final-Taxonomy132-after-phylum-102-samples.qza \
+  --o-visualization Final-Taxonomy132-after-phylum-102-samples.qzv
+
+qiime taxa barplot \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --i-taxonomy Final-Taxonomy132-after-phylum-102-samples.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --o-visualization Final-taxa-bar-plots-Silva132-with-phylum-rarefaction.qzv
+
+#Alpha and beta diversity analyses – 102 patients 
+#Rarefaction cut off: 6,430 (lowest number of reads observed across all samples)
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree-Final-Sputum.qza \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --p-sampling-depth 6430 \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --output-dir core-metrics-results
+
+#Move to Core-metric-results folder
+#Copy metadata file (102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv) to Core-metric-results folder
+#Alpha diversity 
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity faith_pd_vector.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --o-visualization faith-pd-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity observed_otus_vector.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --o-visualization observed-otu-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity shannon_vector.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --o-visualization shannon-group-significance.qzv
+
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity evenness_vector.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --o-visualization evenness-group-significance.qzv
+
+#Note: export the raw data for each alpha diversity metric and save into one single file “RTC-sputum-alpha-diversity-from-Qiime2.txt”
+#There is an option to download the raw data when visualizing each .qzv file using Qiime2View.
+
+#Beta diversity – Unweighted Unifrac
+qiime diversity beta-group-significance \
+  --i-distance-matrix unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --m-metadata-column Mortality_1Year\
+  --o-visualization Mortality-unweighted-unifrac-significance.qzv \
+  --p-pairwise
+
+#Beta-diversity - Weighted Unifrac
+qiime diversity beta-group-significance \
+  --i-distance-matrix weighted_unifrac_distance_matrix.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --m-metadata-column Mortality_1Year\
+  --o-visualization Mortality-weighted-unifrac-significance.qzv \
+  --p-pairwise
+
+#Beta-diversity – Bray Curtis
+qiime diversity beta-group-significance \
+  --i-distance-matrix bray_curtis_distance_matrix.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --m-metadata-column Mortality_1Year \
+  --o-visualization Mortality-bray-curtis-significance.qzv \
+  --p-pairwise
+
+#Beta-diversity - Jaccard
+qiime diversity beta-group-significance \
+  --i-distance-matrix jaccard_distance_matrix.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --m-metadata-column Mortality_1Year\
+  --o-visualization Mortality-jaccard-significance.qzv \
+  --p-pairwise
+
+#Beta-diversity Generalized Unifrac (alpha 0.5)
+#Plugin used: beta-phylogenetic-alt: Beta diversity (phylogenetic) - High Performance Computation
+#Move one directory up: cd .. 
+#Obtaining feature table at the same sampling depth (rarefaction cut-off: 6,430 reads)
+qiime feature-table rarefy \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --p-sampling-depth 6430 \
+  --o-rarefied-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza
+
+qiime feature-table summarize \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza \
+  --o-visualization Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qzv \
+  --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv
+
+#Obtaining Generalized Unifrac distance matrix using rarefied feature table
+qiime diversity beta-phylogenetic-alt \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza \
+  --i-phylogeny rooted-tree-Final-Sputum.qza \
+  --p-metric generalized_unifrac \
+   --p-alpha 0.5 \
+  --o-distance-matrix core-metrics-results/Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza
+
+#Move to Core-metric-results folder
+#Performing beta diversity analysis using Generalized Unifrac distance matrix (alpha 0.5)
+qiime diversity beta-group-significance \
+  --i-distance-matrix Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza \
+  --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+  --m-metadata-column Mortality_1Year \
+  --o-visualization Mortality-alpha-0.5-generalized_unifrac-significance.qzv \
+  --p-pairwise
+
+#Obtaining PCoA file and emperor plot related to Generalized Unifrac distance matrix (alpha 0.5)
+qiime diversity pcoa \
+--i-distance-matrix Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza \
+--o-pcoa Mortality-alpha-0.5-generalized_unifrac_pcoa_results.qza
+
+qiime emperor plot \
+--i-pcoa Mortality-alpha-0.5-generalized_unifrac_pcoa_results.qza \
+--m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
+--o-visualization Mortality-alpha-0.5-generalized_unifrac_emperor.qzv
+
+#Exporting Generalized Unifrac distance matrix (alpha 0.5)
+qiime tools export \
+ --input-path Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza \
+ --output-path exported
+
+#Renaming exported GU distance matrix
+mv exported/distance-matrix.tsv exported/GU-distance-matrix.txt
+
+# Move one directory up: cd .. 
+#Collapsing Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza at genus level
+#Taxonomic database: Silva 132
+qiime taxa collapse \
+  --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --i-taxonomy Final-Taxonomy132-after-phylum-102-samples.qza \
+  --p-level 6 \
+  --o-collapsed-table Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza
+
+qiime feature-table summarize \
+  --i-table Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --o-visualization Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
+  --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
+
+#Exporting collapsed feature table (Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides number of reads for all taxa (up to genus level) across all samples (according to SampleID)
+qiime tools export \
+ --input-path Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+ --output-path Collapsed-Table
+
+#Renaming exported collapsed feature table
+mv Collapsed-Table/feature-table.biom Collapsed-Table/Collapsed-all-samples-method.biom
+
+#Converting BIOM file (Collapsed-all-samples-method.biom) to tsv format
+biom convert -i Collapsed-Table/Collapsed-all-samples-method.biom \
+  -o Collapsed-Table/collapsed-all-samples.tsv \
+  --to-tsv --header-key taxonomy
+
+#Creating presence or absence feature table from Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza
+qiime feature-table presence-absence \
+--i-table Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+--o-presence-absence-table Binary-Collapsed-Table/Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+--output-dir Binary-Collapsed-Table
+
+qiime feature-table summarize \
+  --i-table Binary-Collapsed-Table/Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+  --o-visualization Binary-Collapsed-Table/Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
+  --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv
+
+#Exporting binary collapsed feature table (Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides information regarding presence or absence for all taxa (up to genus level) across all samples (according to SampleID)
+qiime tools export \
+ --input-path Binary-Collapsed-Table/Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+ --output-path Binary-Collapsed-Table
+
+#Renaming exported binary collapsed feature table
+mv Binary-Collapsed-Table/feature-table.biom Binary-Collapsed-Table/Binary-Collapsed-all-samples-method.biom
+
+#Converting BIOM file (Binary-Collapsed-all-samples-method.biom) to tsv format
+biom convert -i Binary-Collapsed-Table/Binary-Collapsed-all-samples-method.biom \
+  -o Binary-Collapsed-Table/Binary-Collapsed-all-samples.tsv \
+  --to-tsv --header-key taxonomy
+
+#Exporting Feature Table (Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza) as BIOM file
+qiime tools export \
+ --input-path Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
+ --output-path Exported
+
+#Renaming BIOM file to 102-Sputum-not-rarefied.biom
+mv Exported/feature-table.biom Exported/102-Sputum-not-rarefied.biom
+
+#Exporting Taxonomic File (Final-Taxonomy132-after-phylum-102-samples.qza) 
+qiime tools export \
+ --input-path Final-Taxonomy132-after-phylum-102-samples.qza \
+ --output-path Exported
+
+#Change the first line of taxonomy.tsv (i.e., the header) to: #OTUID; taxonomy; confidence ==> save as taxonomy1.tsv
+#Editing taxonomy1.tsv to remove D_0; D_1,… (Optional)
+#Adding taxonomic information to BIOM file (102-Sputum-not-rarefied.biom)
+biom add-metadata -i Exported/102-Sputum-not-rarefied.biom -o Exported/102-Sputum-not-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
+
+#Exporting Feature Table – rarefied (Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza) as BIOM file
+qiime tools export \
+ --input-path Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza \
+ --output-path Exported
+
+#Renaming BIOM file to 102-Sputum-rarefied.biom
+mv Exported/feature-table.biom Exported/102-Sputum-rarefied.biom
+
+#Adding taxonomic information to BIOM file (102-Sputum-rarefied.biom)
+biom add-metadata -i Exported/102-Sputum-rarefied.biom -o Exported/102-Sputum-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
+
+#Exporting Tree file (Final-Taxonomy132-after-phylum-102-samples.qza) 
+qiime tools export \
+ --input-path rooted-tree-Final-Sputum.qza \
+ --output-path Exported
+
+Part II – R 
+#Create a new folder (In our case: Sputum-Mortality-Paper-codes)
+#Copy the following files to this folder:
+1) Metadata file: 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt
+2) BIOM file (rarefied): 102-Sputum-rarefied-with-taxonomy.biom (for alpha and beta diversity analyses)
+3) BIOM file (not rarefied): 102-Sputum-not-rarefied-with-taxonomy.biom (for making taxa bar plots at phylum and genus levels)
+4) Tree file: tree.nwk
+5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): RTC-sputum-alpha-diversity-from-Qiime2.txt (Optional).
+6) Generalized Unifrac distance matrix (alpha=0.5) exported from QIIME2: GU-distance-matrix.txt
+
+#R Code used for Sputum vs. 1-Year Mortality Analysis in AECOPD
+library(phyloseq)
+library(BiocStyle)
+library(ggplot2)
+library(ape)
+library(tidyr)
+library(broom)
+library(dplyr)
+library(Hmisc)
+library (microbiome)
+library (picante)
+library(plyr)
+library(reshape2)
+library(doBy)
+library(RVAideMemoire)
+library (vegan)
+library(heatmap.plus)
+library(RColorBrewer)
+library(gplots)
+library(kableExtra)
+library(gridExtra)
+library(knitr)
+library(microbiomeSeq)
+library(adespatial)
+library(ggpubr)
+library (devtools)
+packageVersion('phyloseq')
+[1] ‘1.22.3’
+
+packageVersion('vegan')
+[1] ‘2.4.6’
+
+#Setting working directory
+setwd("C:/Users/ferna/Desktop/Sputum-Mortality-Paper-codes")
+
+#PART I - Alpha and beta diversity analyses 
+# Importing files (BIOM - rarefied, metadata and tree file)
+biom <-import_biom("102-Sputum-rarefied-with-taxonomy.biom")
+map <-import_qiime_sample_data("102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt")
+tree <- read.tree("tree.nwk")
+tree$tip.label <- gsub("'", "", tree$tip.label, fixed = TRUE)
+
+#Creating phyloseq object
+OTU <-merge_phyloseq(biom,map,tree)
+OTU
+
+#Relabing taxonomic levels
+rownames(map) <- map$SampleID
+colnames(tax_table(OTU))
+colnames(tax_table(OTU)) <- c("Kingdom", "Phylum", "Class", 
+                              "Order", "Family", "Genus", "Species")
+#Importing metadata file
+metadata <- read.csv(file="102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt", header=T, sep='\t')
+metadata <- metadata[order(metadata$SampleID),]
+rownames(metadata) <- NULL
+
+#Pre-Processing from OTU
+OTU1 <- prune_taxa(taxa_sums (OTU) > 0, OTU)
+OTU1
+
+#Total OTU abundance in each sample (number of reads must be equal across all samples- using rarefied BIOM file)
+s <- sample_sums(OTU1)
+s
+
+#Details of phyloseq object (OTU1)
+head(sample_names(OTU1))
+sample_variables(OTU1)
+otu_table(OTU1)[1:5, 1:5]
+tax_table(OTU1)[1:5, 1:4]
+taxa_names(OTU1)[1:10]
+
+#Alpha Diversity analyses (using values exported from QIIME2)
+#File: RTC-sputum-alpha-diversity-from-Qiime2.txt
+#Other option: to use built-in diversity functions from the phyloseq package, such as: 
+#plot_richness(OTU1, measures=c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson", "Fisher"))
+diversity=read.table ("RTC-sputum-alpha-diversity-from-Qiime2.txt", header=TRUE)  #using alpha-diversity values exported directly from Qiime2
+
+diversity <- merge(diversity, metadata,by="SampleID")
+
+diversity$Mortality_1Year <- factor(diversity$Mortality_1Year,
+                                             levels = c('Non-Survivors', 'Survivors'),
+                                             labels = c('Non-Survivors', 'Survivors'))
+
+#Richness (Observed ASVs)
+xlabs <- paste(levels(diversity$Mortality_1Year),"\n(N=",table(diversity$Mortality_1Year),")",sep="")
+ggplot(diversity, aes(x=Mortality_1Year, y=observed_otus)) + geom_boxplot() +
+  geom_point(position = position_jitter(width = 0.2))+
+  theme_bw() +
+  labs(title="Observed ASVs") +
+  guides(fill=guide_legend(title=NULL))+
+  xlab(NULL) +
+  ylab("Observed ASVs") +
+  theme(plot.title = element_text(color="black", face="bold", size=18, hjust=0.5)) +
+  theme(axis.title = element_text(color="black", face="bold", size=18)) +
+  theme(axis.text.x = element_text(color="black", size=18, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=18, face="bold")) +
+  coord_cartesian(ylim=c(0, 120)) + 
+  scale_y_continuous(breaks=seq(0, 150, 30)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(legend.position="none") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave(filename = "Sputum-richness.png",
+       width = 6, height = 5, dpi = 300, units = "in", device='png')
+
+attach(diversity)
+wilcox.test(observed_otus~Mortality_1Year)
+
+#Shannon Index
+ggplot(diversity, aes(x=Mortality_1Year, y=shannon)) + geom_boxplot() +
+  geom_point(position = position_jitter(width = 0.2))+
+  theme_bw() +
+  labs(title="Shannon Index") +
+  guides(fill=guide_legend(title=NULL))+
+  xlab(NULL) +
+  ylab("Shannon Index\n") +
+  theme(plot.title = element_text(color="black", face="bold", size=18, hjust=0.5)) +
+  theme(axis.title = element_text(color="black", face="bold", size=18)) +
+  theme(axis.text.x = element_text(color="black", size=18, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=18, face="bold")) +
+  coord_cartesian(ylim=c(0, 6)) + 
+  scale_y_continuous(breaks=seq(0, 6, 1)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(legend.position="none") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave(filename = "Sputum-Shannon.png",
+       width = 6, height = 5, dpi = 300, units = "in", device='png')
+
+wilcox.test(shannon~Mortality_1Year)
+
+#Evenness (pielou_e)
+ggplot(diversity, aes(x=Mortality_1Year, y=pielou_e)) + geom_boxplot() +
+  geom_point(position = position_jitter(width = 0.2))+
+  theme_bw() +
+  labs(title="Evenness") +
+  guides(fill=guide_legend(title=NULL))+
+  xlab(NULL) +
+  ylab("Evenness\n") +
+  theme(plot.title = element_text(color="black", face="bold", size=18, hjust=0.5)) +
+  theme(axis.title = element_text(color="black", face="bold", size=18)) +
+  theme(axis.text.x = element_text(color="black", size=18, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=18, face="bold")) +
+  coord_cartesian(ylim=c(0, 1)) + 
+  scale_y_continuous(breaks=seq(0, 1, 0.2)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(legend.position="none") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave(filename = "Sputum-Evenness.png",
+       width = 6, height = 5, dpi = 300, units = "in", device='png')
+
+wilcox.test(pielou_e~Mortality_1Year)
+
+#Faith's PD
+ggplot(diversity, aes(x=Mortality_1Year, y=faith_pd)) + geom_boxplot() +
+  geom_point(position = position_jitter(width = 0.2))+
+  theme_bw() +
+  xlab(NULL) +
+  ylab("Faith's PD") +
+  theme(plot.title = element_text(color="black", face="bold", size=18, hjust=0.5)) +
+  theme(axis.title = element_text(color="black", face="bold", size=18)) +
+  theme(axis.text.x = element_text(color="black", size=18, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=18, face="bold")) +
+  coord_cartesian(ylim=c(0, 10)) + 
+  scale_y_continuous(breaks=seq(0, 10, 2)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(legend.position="none") +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave(filename = "Sputum-Faith.png",
+       width = 6, height = 5, dpi = 300, units = "in", device='png')
+
+wilcox.test(faith_pd~Mortality_1Year)
+detach(diversity)
+
+#Beta Diversity Analyses
+#Distance matrix used: Generalized Unifrac
+#Note: this distance matrix is not supported by the phyloseq package.
+#Alternative: to use functions provided by additional R packages, such as GUniFrac.
+#Here, we are using a Generalized Unifrac Distance matrix (alpha=0.5) obtained from QIIME2.
+Dist_GU_alpha_0.5 = read.csv(file="GU-distance-matrix.txt", header=T, row.names = 1, sep='\t')
+Dist_GU_alpha_0.5 = as.dist(as(Dist_GU_alpha_0.5, "matrix"))
+class (Dist_GU_alpha_0.5)
+
+#Performing ordination (PCoA)
+ord_GU_alpha_0.5 = ordinate(OTU1, method = "PCoA", distance = Dist_GU_alpha_0.5)
+plot_scree(ord_GU_alpha_0.5, "Scree Plot: GU_alpha-0.5")
+
+# make a data frame from the sample_data
+sampledf <- data.frame(sample_data(OTU1))
+
+#Ordination - Mortality_1Year - PCoA - GUF (alpha 0.5) from Qiime2
+p1 = plot_ordination(OTU1, ord_GU_alpha_0.5, type="samples", color="Mortality_1Year", title="taxa") +
+  geom_point(size = 4) + 
+  ggtitle("1-Yr-Mortality - PCoA Plot - GUF - alpha=0.5") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  guides(shape=FALSE) +
+  theme(legend.title = element_text(face = "bold")) +
+  theme(plot.title = element_text(color="black", face="bold", size=15, hjust=0.5)) +
+  theme(axis.title = element_text(color="black", face="bold", size=12)) +
+  theme(axis.text.x = element_text(color="black", size=14, face="bold")) +
+  theme(axis.text.y = element_text(color="black", size=14, face="bold")) +
+  coord_equal() +
+  scale_fill_brewer(palette="Set1") +
+  theme(panel.grid.minor=element_blank(), panel.grid.major=element_blank(), panel.background=element_blank(), 
+        axis.line = element_line(colour = "black"), panel.border = element_rect(colour = "black", fill=NA, size=1)) +
+  theme(legend.justification=c(1,0), legend.position=c(0.35, 0.01)) +
+  theme(legend.text = element_text(colour="black", size = 12, face = "bold")) +
+  theme(legend.title = element_blank())
+
+print(p1)
+
+## Obtaining centroids for PcoA plot using betadisper function from vegan 
+groups_mortality <- sampledf[["Mortality_1Year"]]
+GU_alpha_0.5_OTU1 <-betadisper(Dist_GU_alpha_0.5, groups_mortality, type=c("centroid"))
+anova(GU_alpha_0.5_OTU1)
+
+##Betadisper from Vegan - GU alpha 0.5 distance matrix
+#Identifying values for each PCoA axes
+#We will only use the first two axes, the most important ones in the graph.
+labs <- paste("Dimension", 1:4, "(", round(100*GU_alpha_0.5_OTU1$eig / sum(GU_alpha_0.5_OTU1$eig), 2), "%)")
+labs
+
+#Making the PCoA Plot
+dev.off() 
+par(mar=c(8,8,4,4))
+png(file = "GU_alpha_0.5-Qiime2.png", height = 7, width = 7, units = "in", res = 800)
+plot(GU_alpha_0.5_OTU1, cex=1.2, pch=15:16, main="GU_alpha_0.5-Qiime2", cex.lab=1.6,
+     ylab='', xlab ='', hull=FALSE, ellipse=FALSE, lwd=1, label=F, font.lab = 2, font.axis=2, cex.axis=1.3, col =   c("#00AFBB",  "#FC4E07"))
+lines(c(-0.7, 0.8), c(0.0,0.0), type = "l", lty = "dashed", col = "black", lwd=1.2)
+lines(c(0.0,0.0), c(-0.6,0.5), type = "l", lty = "dashed", col = "black", lwd=1.2)
+ordispider(GU_alpha_0.5_OTU1, groups_mortality, lwd=0.5, col = c("#00AFBB",  "#FC4E07"))
+points(GU_alpha_0.5_OTU1$centroids[,1:2], pch=20, cex=2.0, col = c("#00AFBB",  "#FC4E07"))
+ordilabel(scores(GU_alpha_0.5_OTU1, "centroids"), labels=c("NS","S"), cex=1.2, font=2, fill= c("#00AFBB",  "#FC4E07"), col="white", lwd=1)
+title(xlab="PC1 (23.0% Explained)", line=2.8, cex.lab=1.4, font.lab = 2)
+title(ylab="PC2 (13.4% Explained)", line=2.5, cex.lab=1.4, font.lab = 2)
+dev.off()
+
+## Within-group dispersion that PERMDISP is testing
+boxplot(GU_alpha_0.5_OTU1)
+
+## pairwise p-values
+TukeyHSD(GU_alpha_0.5_OTU1)
+
+# Adonis test - Mortality_1Year
+adonis(Dist_GU_alpha_0.5 ~ Mortality_1Year, data = sampledf)
+
+# Adonis test - Mortality_1Year (with adjustments for several confounders)
+#SCI = Seattle Comorbidity Index
+adonis(Dist_GU_alpha_0.5 ~ Mortality_1Year + age + gender + SCI + Smoking + 
+         Antibiotic_use + AECOPD_1yr + O2_SUPPLEMENT, data = sampledf, permutations=10000) 
+
+# ANOSIM test - Mortality_1Year
+anosim(dat = Dist_GU_alpha_0.5, grouping = groups_mortality, permutations = 10000) 
+
+# Homogeneity of dispersion test - Mortality_1Year
+beta_binary_Mortality_1Year <- betadisper(Dist_GU_alpha_0.5, sampledf$Mortality_1Year)
+permutest(beta_binary_Mortality_1Year)
+
+#PART II - Taxa bar plots
+# Importing BIOM (not rarefied file)
+# Map and tree files already imported! 
+biom_not_rarefied <-import_biom ("102-Sputum-not-rarefied-with-taxonomy.biom")
+
+#Creating phyloseq object
+OTU2 <-merge_phyloseq(biom_not_rarefied,map,tree)
+OTU2
+
+#Relabing taxonomic levels
+rownames(map) <- map$SampleID
+colnames(tax_table(OTU2))
+colnames(tax_table(OTU2)) <- c("Kingdom", "Phylum", "Class", 
+                              "Order", "Family", "Genus", "Species")
+
+#Pre-Processing from OTU2
+OTU3 <- prune_taxa(taxa_sums (OTU2) > 0, OTU2)
+OTU3
+
+# Histogram of sample read counts
+smin <- min(sample_sums(OTU3))
+smean <- mean(sample_sums(OTU3))
+smax <- max(sample_sums(OTU3))
+
+smin
+smean
+smax
+
+sample_sum_df <- data.frame(sum = sample_sums(OTU3))
+ggplot(sample_sum_df, aes(x = sum)) + 
+  geom_histogram(color = "black", fill = "indianred", binwidth = 500) +
+  ggtitle("Distribution of sample sequencing depth") + 
+  xlab("Read counts") +
+  theme(axis.title.y = element_blank())
+
+#Details of phyloseq object (OTU3)
+head(sample_names(OTU3))
+sample_variables(OTU3)
+otu_table(OTU3)[1:5, 1:5]
+tax_table(OTU3)[1:5, 1:4]
+taxa_names(OTU3)[1:10]
+
+#Creating csv files from OTU3 at the phylum level
+OTU_taxa_phylum <- OTU3 %>%
+  tax_glom(taxrank = "Phylum") %>%                        # agglomerate at phylum level
+  transform_sample_counts(function(x) {x/sum(x)} ) %>%    # Transform to rel. abundance
+  psmelt() %>%                                            # Melt to long format
+  arrange(Phylum)
+
+write.table(OTU_taxa_phylum, file = "erie_taxa_phylum.csv", sep = ",", col.names = NA, qmethod = "double")
+
+#Creating csv files from OTU3 at the genus level
+OTU_taxa_genus <- OTU3 %>%
+  tax_glom(taxrank = "Genus") %>%                        # agglomerate at genus level
+  transform_sample_counts(function(x) {x/sum(x)} ) %>%   # Transform to rel. abundance
+  psmelt() %>%                                           # Melt to long format
+  arrange(Genus)
+
+write.table(OTU_taxa_genus, file = "erie_taxa_genus.csv", sep = ",", col.names = NA, qmethod = "double")
+
+#Part III - Phylum Level
+# Creating table, number of features for each Phylum
+table(tax_table(OTU3)[, "Phylum"], exclude = NULL)
+
+#Converting to Relative Abundance
+OTU3_rel= transform_sample_counts(OTU3, function(x) x / sum(x) )
+
+#Agglomerating taxa of the same type at the Phylum level (phyloseq object: OTU3_rel)
+glom <- tax_glom(OTU3_rel, taxrank = 'Phylum')
+
+# Creating a dataframe in long format from new phyloseq object (glom)
+dat <- psmelt(glom)
+
+# Converting factor "Phylum" to a character vector 
+dat$Phylum <- as.character(dat$Phylum)
+
+# Grouping by Phylum ==> calculating mean Relative Abundance
+mean <- ddply(dat, ~Phylum, function(x) c(mean=mean(x$Abundance)))
+
+# Identifying Phyla whose Relative Abundance mean is less than 2%
+Others <- mean[mean$mean <= 0.02,]$Phylum
+
+# Relabing less abundant Phyla as "Others" 
+dat[dat$Phylum %in% Others,]$Phylum <- 'Others'
+
+# Visualizing boxplot (most abundant Phyla + Others)
+ggplot(dat,
+       aes(x=Phylum,
+           y=Abundance)) + geom_boxplot() + coord_flip()
+
+#Saving a new dataframe with less abudant Phyla relabelled as "Others"
+write.table(dat, file = "erie_taxa_phyla_others.csv", sep = ",", col.names = NA, qmethod = "double")
+
+#Checking the most frequent Phyla - for ordering
+options(scipen=999)
+library(plyr)
+phylum_graph <- as.data.frame(ddply(dat, c("Phylum"), summarise,
+                                    N    = length(Abundance),
+                                    mean = mean (Abundance)))
+
+phylum_graph = arrange(phylum_graph, desc(mean))
+phylum_graph
+
+#Creating factors for graphs
+seq <- factor(dat$Phylum)
+seq <- c("Firmicutes", "Proteobacteria", "Bacteroidetes", "Actinobacteria", "Fusobacteria", "Others") 
+dat$Phylum <- factor(dat$Phylum, levels = c(seq))    
+seq_group <- factor(c("Non-Survivors","Survivors"))
+
+seq_group <- factor(dat$Mortality_1Year, c("Non-Survivors","Survivors"))
+
+#Using a customized Color Palette
+cbPalette <- c("#CBD588", "#5F7FC7", "orange","#DA5724", "#508578", "black")
+
+#Merged plot - Phylum - Mortality_1Year (Phylum Level)
+xlabs <- paste(levels(diversity$Mortality_1Year),"\n(N=",table(diversity$Mortality_1Year),")",sep="")
+
+p = ggplot(dat, aes(fill=Phylum, y=Abundance, x=Mortality_1Year)) +
+  geom_bar(stat="identity", position = position_fill(reverse = F)) + theme_bw() +
+  theme(legend.text = element_text(colour="black", size = 8, face = "bold"))+
+  theme(plot.title = element_text(lineheight=0.8, face="bold", size=14))+
+  labs(title="Phylum Level") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.title = element_blank()) +
+  scale_fill_manual(values=cbPalette) +
+  ylab("Relative Abundance\n")+
+  labs(fill = "Phylum") +
+  theme(legend.title = element_text(colour="black", size=14, face="bold")) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(axis.title.x = element_blank())+
+  theme(axis.title.y = element_text(face="bold", size=16, vjust=1.5),
+        axis.text.x  = element_text(face="bold", colour="black", size=14),
+        axis.text.y  = element_text(face="bold", colour="black", size=14),
+        legend.text=element_text(size=12)) 
+
+p + theme(panel.background = element_blank(), 
+          panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(), 
+          plot.margin = unit(c(1,2,1,2), "cm"))
+
+ggsave(filename = "Sputum-phylum-merged.png",
+       width = 7, height = 5, dpi = 300, units = "in", device='png')
+
+#Comparing Mortality_1Year at Phylum Level
+RANK <- 'Phylum'
+dat %>%
+  filter(Phylum!= "Others") %>%
+  group_by_(RANK) %>%
+  do(tidy(wilcox.test (Abundance ~ Mortality_1Year, data=., exact=F))) %>%
+  ungroup() %>%
+  mutate(p.adjust=p.adjust(p.value, method = "fdr")) -> Mortality_1Year_phylum.results
+
+Mortality_1Year_phylum.results %>%
+  knitr::kable()
+
+#Part IV - Genus Level
+# Creating table, number of features for each Genus
+table(tax_table(OTU3)[, "Genus"], exclude = NULL)
+
+#Agglomerating taxa of the same type at the Genus level (phyloseq object: OTU3_rel)
+glom_g <- tax_glom(OTU3_rel, taxrank = 'Genus')
+
+# Creating a dataframe in long format from new phyloseq object (glom_g)
+dat_g <- psmelt(glom_g)
+
+# Converting factor "Genus" to a character vector 
+dat_g$Genus <- as.character(dat_g$Genus)
+
+# Grouping by Genus ==> calculating mean Relative Abundance
+mean_g <- ddply(dat_g, ~Genus, function(x) c(mean=mean(x$Abundance)))
+
+# Identifying Genera whose Relative Abundance mean is less than 1%
+Others <- mean_g[mean_g$mean <= 0.01,]$Genus
+
+# Relabing less abundant Genus as "Others" 
+dat_g[dat_g$Genus %in% Others,]$Genus <- 'Others'
+
+# Visualizing boxplot (most abundant Genus + Others)
+ggplot(dat_g,
+       aes(x=Genus,
+           y=Abundance)) + geom_boxplot() + coord_flip()
+
+#Saving a new dataframe with less abundant Genera relabelled as "Others"
+write.table(dat_g, file = "erie_taxa_genus_others.csv", sep = ",", col.names = NA, qmethod = "double")
+
+#Checking the most frequent Genera - for ordering
+options(scipen=999)
+library(plyr)
+genus_graph <- as.data.frame(ddply(dat_g, c("Genus"), summarise,
+                                    N    = length(Abundance),
+                                    mean = mean (Abundance)))
+
+genus_graph = arrange(genus_graph, desc(mean))
+genus_graph
+
+#Creating factors for graphs
+seq_g <- factor(dat_g$Genus)
+seq_g <- c("Streptococcus", "Prevotella 7", "Rothia", "Haemophilus", "Veillonella",   
+           "Pseudomonas", "Lactobacillus", "Prevotella", "Leptotrichia", "Actinomyces", "Gemella",  
+           "Neisseria", "Staphylococcus", "Granulicatella", "Others")
+dat_g$Genus <- factor(dat_g$Genus, levels = c(seq_g))    
+seq_group <- factor(c("Non-Survivors","Survivors"))
+seq_group <- factor(dat_g$Mortality_1Year, c("Non-Survivors","Survivors"))
+
+#Using a customized Color Palette
+cbPalette1 <- c(
+"#CBD588", "#5F7FC7", "orange","#DA5724", "#508578", "#CD9BCD",
+"#AD6F3B", "#673770","#D14285", "#00AFBB", "#652926", 
+"#5E738F", "#D1A33D", "#8569D5", "black")
+
+#Mortality_1Year - Merged plot (Genus Level)
+xlabs <- paste(levels(diversity$Mortality_1Year),"\n(N=",table(diversity$Mortality_1Year),")",sep="")
+
+p = ggplot(dat_g, aes(fill=Genus, y=Abundance, x=Mortality_1Year)) +
+  geom_bar(stat="identity", position = position_fill(reverse = F)) + theme_bw() +
+  theme(legend.text = element_text(colour="black", size = 8, face = "bold"))+
+  theme(plot.title = element_text(lineheight=0.8, face="bold", size=15))+
+  labs(title="Genus Level") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(legend.title = element_blank()) +
+  scale_fill_manual(values=cbPalette1) +
+  ylab("Relative Abundance - RA\n")+
+  labs(fill = "Genus") +
+  theme(legend.title = element_text(colour="black", size=14, face="bold")) +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_discrete(labels=xlabs) +
+  theme(axis.title.x = element_blank())+
+  theme(axis.title.y = element_text(face="bold", size=16, vjust=1.5),
+        axis.text.x  = element_text(face="bold", colour="black", size=14),
+        axis.text.y  = element_text(face="bold", colour="black", size=14),
+        legend.text=element_text(size=12))
+
+p + theme(panel.background = element_blank(), 
+          panel.grid = element_blank(),
+          axis.ticks = element_blank(),
+          panel.border = element_blank(),
+          axis.line = element_line(), 
+          plot.margin = unit(c(1,2,1,2), "cm"))
+
+ggsave(filename = "Sputum-genus-merged.png",
+       width = 7, height = 5, dpi = 300, units = "in", device='png')
+
+#Comparing Mortality_1Year Genus Distribution
+RANK <- 'Genus'
+dat_g %>%
+  filter(Genus!= "Others") %>%
+  group_by_(RANK) %>%
+  do(tidy(wilcox.test (Abundance ~ Mortality_1Year, data=., exact=F))) %>%
+  ungroup() %>%
+  mutate(p.adjust=p.adjust(p.value, method = "fdr")) -> Mortality_1Year_genus.results
+
+Mortality_1Year_genus.results %>%
+  knitr::kable()
+
+
+#Session Info
+devtools::session_info()
+
+Session info -----------------------------------------------------------------------------------------------------------------------------------
+ setting  value                       
+ version  R version 3.4.4 (2018-03-15)
+ system   x86_64, mingw32             
+ ui       RStudio (1.0.153)           
+ language (EN)                        
+ collate  English_United States.1252  
+ tz       America/Los_Angeles         
+ date     2018-10-22                  
+
+Packages ---------------------------------------------------------------------------------------------------------------------------------------
+ package       * version   date       source                                 
+ acepack         1.4.1     2016-10-29 CRAN (R 3.4.3)                         
+ ade4            1.7-10    2017-12-15 CRAN (R 3.4.3)                         
+ adegenet        2.1.1     2018-02-02 CRAN (R 3.4.3)                         
+ adegraphics     1.0-9     2017-12-15 CRAN (R 3.4.3)                         
+ adephylo        1.1-11    2017-12-18 CRAN (R 3.4.3)                         
+ adespatial    * 0.1-1     2018-01-16 CRAN (R 3.4.3)                         
+ ape           * 5.0       2017-10-30 CRAN (R 3.4.3)                         
+ assertthat      0.2.0     2017-04-11 CRAN (R 3.4.3)                         
+ backports       1.1.2     2017-12-13 CRAN (R 3.4.3)                         
+ base          * 3.4.4     2018-03-15 local                                  
+ base64enc       0.1-3     2015-07-28 CRAN (R 3.4.1)                         
+ bindr           0.1       2016-11-13 CRAN (R 3.4.3)                         
+ bindrcpp      * 0.2       2017-06-17 CRAN (R 3.4.3)                         
+ Biobase         2.38.0    2017-10-31 Bioconductor                           
+ BiocGenerics    0.24.0    2017-10-31 Bioconductor                           
+ BiocStyle     * 2.6.1     2017-11-30 Bioconductor                           
+ biomformat      1.6.0     2017-10-31 Bioconductor                           
+ Biostrings      2.46.0    2017-10-31 Bioconductor                           
+ bitops          1.0-6     2013-08-17 CRAN (R 3.4.1)                         
+ bold            0.5.0     2017-07-21 CRAN (R 3.4.3)                         
+ boot            1.3-20    2017-08-06 CRAN (R 3.4.4)                         
+ broom         * 0.4.3     2017-11-20 CRAN (R 3.4.3)                         
+ car             2.1-6     2017-11-19 CRAN (R 3.4.3)                         
+ caTools         1.17.1    2014-09-10 CRAN (R 3.4.3)                         
+ checkmate       1.8.5     2017-10-24 CRAN (R 3.4.3)                         
+ cluster         2.0.7-1   2018-04-09 CRAN (R 3.4.4)                         
+ coda            0.19-1    2016-12-08 CRAN (R 3.4.3)                         
+ codetools       0.2-15    2016-10-05 CRAN (R 3.4.4)                         
+ colorspace      1.3-2     2016-12-14 CRAN (R 3.4.3)                         
+ compiler        3.4.4     2018-03-15 local                                  
+ crul            0.5.2     2018-02-24 CRAN (R 3.4.3)                         
+ curl            3.1       2017-12-12 CRAN (R 3.4.3)                         
+ data.table      1.11.4    2018-05-27 CRAN (R 3.4.4)                         
+ datasets      * 3.4.4     2018-03-15 local                                  
+ deldir          0.1-14    2017-04-22 CRAN (R 3.4.1)                         
+ devtools      * 1.13.5    2018-02-18 CRAN (R 3.4.3)                         
+ digest          0.6.15    2018-01-28 CRAN (R 3.4.3)                         
+ doBy          * 4.5-15    2016-03-31 CRAN (R 3.4.3)                         
+ dplyr         * 0.7.4     2017-09-28 CRAN (R 3.4.3)                         
+ evaluate        0.10.1    2017-06-24 CRAN (R 3.4.3)                         
+ expm            0.999-2   2017-03-29 CRAN (R 3.4.3)                         
+ foreach         1.4.4     2017-12-12 CRAN (R 3.4.3)                         
+ foreign         0.8-71    2018-07-20 CRAN (R 3.4.4)                         
+ Formula       * 1.2-2     2017-07-10 CRAN (R 3.4.1)                         
+ gdata           2.18.0    2017-06-06 CRAN (R 3.4.3)                         
+ ggplot2       * 2.2.1     2016-12-30 CRAN (R 3.4.3)                         
+ ggpubr        * 0.1.6.999 2018-03-08 Github (kassambara/ggpubr@d6e249e)     
+ glue            1.2.0     2017-10-29 CRAN (R 3.4.3)                         
+ gmodels         2.16.2    2015-07-22 CRAN (R 3.4.3)                         
+ gplots        * 3.0.1     2016-03-30 CRAN (R 3.4.3)                         
+ graphics      * 3.4.4     2018-03-15 local                                  
+ grDevices     * 3.4.4     2018-03-15 local                                  
+ grid            3.4.4     2018-03-15 local                                  
+ gridExtra     * 2.3       2017-09-09 CRAN (R 3.4.3)                         
+ gtable          0.2.0     2016-02-26 CRAN (R 3.4.3)                         
+ gtools          3.5.0     2015-05-29 CRAN (R 3.4.1)                         
+ heatmap.plus  * 1.3       2012-10-29 CRAN (R 3.4.1)                         
+ highr           0.6       2016-05-09 CRAN (R 3.4.3)                         
+ Hmisc         * 4.1-1     2018-01-03 CRAN (R 3.4.3)                         
+ hms             0.4.1     2018-01-24 CRAN (R 3.4.3)                         
+ htmlTable       1.11.2    2018-01-20 CRAN (R 3.4.3)                         
+ htmltools       0.3.6     2017-04-28 CRAN (R 3.4.3)                         
+ htmlwidgets     1.0       2018-01-20 CRAN (R 3.4.3)                         
+ httpuv          1.3.6.2   2018-03-02 CRAN (R 3.4.3)                         
+ httr            1.3.1     2017-08-20 CRAN (R 3.4.3)                         
+ igraph          1.2.2     2018-07-27 CRAN (R 3.4.4)                         
+ IRanges         2.12.0    2017-10-31 Bioconductor                           
+ iterators       1.0.9     2017-12-12 CRAN (R 3.4.3)                         
+ jsonlite        1.5       2017-06-01 CRAN (R 3.4.3)                         
+ kableExtra    * 0.7.0     2018-01-15 CRAN (R 3.4.3)                         
+ KernSmooth      2.23-15   2015-06-29 CRAN (R 3.4.4)                         
+ knitr         * 1.20      2018-02-20 CRAN (R 3.4.3)                         
+ labeling        0.3       2014-08-23 CRAN (R 3.4.1)                         
+ lattice       * 0.20-35   2017-03-25 CRAN (R 3.4.4)                         
+ latticeExtra    0.6-28    2016-02-09 CRAN (R 3.4.3)                         
+ lazyeval        0.2.1     2017-10-29 CRAN (R 3.4.3)                         
+ LearnBayes      2.15      2014-05-29 CRAN (R 3.4.1)                         
+ lme4            1.1-17    2018-04-03 CRAN (R 3.4.4)                         
+ magrittr      * 1.5       2014-11-22 CRAN (R 3.4.3)                         
+ MASS            7.3-50    2018-04-30 CRAN (R 3.4.4)                         
+ Matrix          1.2-14    2018-04-09 CRAN (R 3.4.4)                         
+ MatrixModels    0.4-1     2015-08-22 CRAN (R 3.4.3)                         
+ memoise         1.1.0     2017-04-21 CRAN (R 3.4.3)                         
+ methods       * 3.4.4     2018-03-15 local                                  
+ mgcv            1.8-24    2018-06-18 CRAN (R 3.4.4)                         
+ microbiome    * 1.1.10008 2018-03-08 Github (microbiome/microbiome@04935ef) 
+ microbiomeSeq * 0.1       2018-07-30 Github (umerijaz/microbiomeSeq@ce63464)
+ mime            0.5       2016-07-07 CRAN (R 3.4.1)                         
+ minqa           1.2.4     2014-10-09 CRAN (R 3.4.3)                         
+ mnormt          1.5-5     2016-10-15 CRAN (R 3.4.1)                         
+ multtest        2.34.0    2017-10-31 Bioconductor                           
+ munsell         0.4.3     2016-02-13 CRAN (R 3.4.3)                         
+ nlme          * 3.1-137   2018-04-07 CRAN (R 3.4.4)                         
+ nloptr          1.0.4     2017-08-22 CRAN (R 3.4.3)                         
+ nnet            7.3-12    2016-02-02 CRAN (R 3.4.4)                         
+ parallel        3.4.4     2018-03-15 local                                  
+ pbkrtest        0.4-7     2017-03-15 CRAN (R 3.4.3)                         
+ permute       * 0.9-4     2016-09-09 CRAN (R 3.4.3)                         
+ phylobase       0.8.4     2017-04-21 CRAN (R 3.4.3)                         
+ phyloseq      * 1.22.3    2017-11-06 Bioconductor                           
+ picante       * 1.6-2     2014-03-05 CRAN (R 3.4.3)                         
+ pillar          1.2.1     2018-02-27 CRAN (R 3.4.3)                         
+ pkgconfig       2.0.1     2017-03-21 CRAN (R 3.4.3)                         
+ plyr          * 1.8.4     2016-06-08 CRAN (R 3.4.3)                         
+ prettyunits     1.0.2     2015-07-13 CRAN (R 3.4.3)                         
+ progress        1.1.2     2016-12-14 CRAN (R 3.4.3)                         
+ psych           1.7.8     2017-09-09 CRAN (R 3.4.3)                         
+ purrr           0.2.4     2017-10-18 CRAN (R 3.4.3)                         
+ quantreg        5.35      2018-02-02 CRAN (R 3.4.3)                         
+ R6              2.2.2     2017-06-17 CRAN (R 3.4.3)                         
+ RColorBrewer  * 1.1-2     2014-12-07 CRAN (R 3.4.1)                         
+ Rcpp            0.12.15   2018-01-20 CRAN (R 3.4.3)                         
+ readr           1.1.1     2017-05-16 CRAN (R 3.4.3)                         
+ reshape         0.8.7     2017-08-06 CRAN (R 3.4.3)                         
+ reshape2      * 1.4.3     2017-12-11 CRAN (R 3.4.3)                         
+ rhdf5           2.22.0    2017-10-31 Bioconductor                           
+ rlang           0.2.0     2018-02-20 CRAN (R 3.4.3)                         
+ rmarkdown       1.9       2018-03-01 CRAN (R 3.4.3)                         
+ rncl            0.8.2     2016-12-16 CRAN (R 3.4.3)                         
+ RNeXML          2.0.8     2017-11-17 CRAN (R 3.4.3)                         
+ rpart           4.1-13    2018-02-23 CRAN (R 3.4.4)                         
+ rprojroot       1.3-2     2018-01-03 CRAN (R 3.4.3)                         
+ rstudioapi      0.7       2017-09-07 CRAN (R 3.4.3)                         
+ RVAideMemoire * 0.9-69    2018-01-05 CRAN (R 3.4.3)                         
+ rvest           0.3.2     2016-06-17 CRAN (R 3.4.3)                         
+ S4Vectors       0.16.0    2017-10-31 Bioconductor                           
+ scales          0.5.0     2017-08-24 CRAN (R 3.4.3)                         
+ seqinr          3.4-5     2017-08-01 CRAN (R 3.4.3)                         
+ shiny           1.0.5     2017-08-23 CRAN (R 3.4.3)                         
+ sp              1.2-7     2018-01-19 CRAN (R 3.4.3)                         
+ SparseM         1.77      2017-04-23 CRAN (R 3.4.1)                         
+ spData          0.2.7.4   2018-02-11 CRAN (R 3.4.3)                         
+ spdep           0.7-4     2017-11-22 CRAN (R 3.4.3)                         
+ splines         3.4.4     2018-03-15 local                                  
+ stats         * 3.4.4     2018-03-15 local                                  
+ stats4          3.4.4     2018-03-15 local                                  
+ stringi         1.1.6     2017-11-17 CRAN (R 3.4.2)                         
+ stringr         1.3.0     2018-02-19 CRAN (R 3.4.3)                         
+ survival      * 2.42-6    2018-07-13 CRAN (R 3.4.4)                         
+ taxize          0.9.2     2018-03-01 CRAN (R 3.4.3)                         
+ tibble          1.4.2     2018-01-22 CRAN (R 3.4.3)                         
+ tidyr         * 0.8.0     2018-01-29 CRAN (R 3.4.3)                         
+ tools           3.4.4     2018-03-15 local                                  
+ utils         * 3.4.4     2018-03-15 local                                  
+ uuid            0.1-2     2015-07-28 CRAN (R 3.4.1)                         
+ vegan         * 2.4-6     2018-01-24 CRAN (R 3.4.3)                         
+ viridisLite     0.3.0     2018-02-01 CRAN (R 3.4.3)                         
+ withr           2.1.1     2017-12-19 CRAN (R 3.4.3)                         
+ XML             3.98-1.10 2018-02-19 CRAN (R 3.4.3)                         
+ xml2            1.2.0     2018-01-24 CRAN (R 3.4.3)                         
+ xtable          1.8-2     2016-02-05 CRAN (R 3.4.3)                         
+ XVector         0.18.0    2017-10-31 Bioconductor                           
+ yaml            2.1.18    2018-03-08 CRAN (R 3.4.4)                         
+ zlibbioc        1.24.0    2017-10-31 Bioconductor                           
+ zoo             1.8-1     2018-01-08 CRAN (R 3.4.3)
+
