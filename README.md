@@ -8,12 +8,20 @@ Sequence data from all sputum samples used in this analysis have been submitted 
 
 In this public Repository, the BIOM files (based on rarefied and non-rarified feature tables), phylogenetic tree file, metadata table and bioinformatics codes used in QIIME2™ and R are available. Questions: please contact Fernando Studart (fernando.studart@hli.ubc.ca).
 
-Folder (
+Files in Folder - Files_used_analysis:
 
-102-Sputum-not-rarefied-with-taxonomy.biom	Add files via upload	2 minutes ago
-102-Sputum-rarefied-with-taxonomy.biom	Add files via upload	2 minutes ago
-102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt	Add files via upload	a minute ago
-GU-distance-matrix.txt	Add files via upload	just now
-RTC-sputum-alpha-diversity-from-Qiime2.txt	Add files via upload	35 seconds ago
-Readme.txt	Create Readme.txt	3 minutes ago
+1) BIOM files:
+102-Sputum-not-rarefied-with-taxonomy.biom	
+102-Sputum-rarefied-with-taxonomy.biom	
+
+2) Metadata file:
+102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt	
+
+3) Phylogenetic tree file:
 tree.nwk
+
+4) Values for alpha diversity metrics - exported from QIIME2: 
+RTC-sputum-alpha-diversity-from-Qiime2.txt
+
+5) Generalized Unifrac distance matrix - exported from QIIME2:
+GU-distance-matrix.txt	
