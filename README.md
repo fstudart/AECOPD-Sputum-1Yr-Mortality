@@ -6,7 +6,7 @@ Lung microbiome data based on sputum samples collected from COPD patients enroll
 
 Sequence data from all sputum samples (n=112) used in this analysis have been submitted to the National Center for Biotechnology Information’s Sequence Read Archive (SRA) under the following accession numbers: BioProject PRJNA491749 and SRA study accession SRP162074. 
 
-In this Public Repository, the BIOM files (based on rarefied and non-rarified feature tables), phylogenetic tree file, metadata table and bioinformatics codes used in QIIME2™ and R are available. Questions: please contact Fernando Studart (fernando.studart@hli.ubc.ca).
+In this Public Repository, the BIOM files (based on rarefied and non-rarified feature tables), phylogenetic tree file, metadata table and bioinformatics codes used in QIIME2™ and R are available for download. Questions: please contact Fernando Studart (fernando.studart@hli.ubc.ca).
 
 Files in Folder - Files_used_analysis:
 
