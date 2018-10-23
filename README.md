@@ -4,7 +4,7 @@ Description
 
 Lung microbiome data based on sputum samples collected from COPD patients enrolled in the Rapid Transition Cohort (ClinicalTrials.gov Identifier: NCT02050022). All samples (n=112) were collected on day 1 of hospitalization due to acute exacerbation of COPD (AECOPD). 1-Year mortality status was also captured during follow-up. 
 
-In the folder (Files_used_analysis), the data files used for analysis in the manuscript "Sputum Microbiome is Associated With 1-Year Mortality Following COPD Hospitalizations" (Authors: Leitao Filho et al; Status: Submitted - Under Revision - R2) are available for download:
+In the Directory:/Files_used_analysis, the data files used for analysis in the manuscript "Sputum Microbiome is Associated With 1-Year Mortality Following COPD Hospitalizations" (Authors: Leitao Filho et al; Status: Submitted - Under Revision - R2) are available for download:
 
 1) BIOM files: 102-Sputum-not-rarefied-with-taxonomy.biom; 102-Sputum-rarefied-with-taxonomy.biom	
 
