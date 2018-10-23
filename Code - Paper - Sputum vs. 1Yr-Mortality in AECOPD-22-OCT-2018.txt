@@ -12,7 +12,7 @@ qiime tools import \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
   --output-path Sputum.qza
 
- #Obtaining summary of sequencing data from sputum samples after being imported into QIIME2®
+#Obtaining summary of sequencing data from sputum samples after being imported into QIIME2®
 qiime demux summarize \
   --i-data Sputum.qza \
   --o-visualization Sputum.qzv
