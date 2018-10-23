@@ -171,7 +171,8 @@ qiime feature-table summarize \
   --i-table Filtered-Sputum-table-contingency-table-with-phylum.qza \
   --o-visualization Filtered-Sputum-table-contingency-table-with-phylum.qzv
 
-#Removing samples with very low number of reads (these samples would be removed during rarefaction step for alpha and beta diversity analyses)
+#Removing samples with very low number of reads (these samples would be removed during rarefaction step for alpha and beta 
+diversity analyses)
 #Samples removed: COPD-049; COPD-086; COPD-090; COPD-093.
 qiime feature-table filter-samples \
 --i-table Filtered-Sputum-table-contingency-table-with-phylum.qza \
@@ -361,7 +362,8 @@ qiime feature-table summarize \
   --o-visualization Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
 
-#Exporting collapsed feature table (Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides number of reads for all taxa (up to genus level) across all samples (according to SampleID)
+#Exporting collapsed feature table (Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides number 
+of reads for all taxa (up to genus level) across all samples (according to SampleID)
 qiime tools export \
  --input-path Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
  --output-path Collapsed-Table
@@ -440,7 +442,8 @@ Part II – R
 2) BIOM file (rarefied): 102-Sputum-rarefied-with-taxonomy.biom (for alpha and beta diversity analyses)
 3) BIOM file (not rarefied): 102-Sputum-not-rarefied-with-taxonomy.biom (for making taxa bar plots at phylum and genus levels)
 4) Tree file: tree.nwk
-5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): RTC-sputum-alpha-diversity-from-Qiime2.txt (This is Optional!)
+5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): 
+   RTC-sputum-alpha-diversity-from-Qiime2.txt (This is Optional!)
 6) Generalized Unifrac distance matrix (alpha=0.5) exported from QIIME2: GU-distance-matrix.txt
 
 #R Code used for Sputum vs. 1-Year Mortality Analysis in AECOPD
@@ -519,7 +522,8 @@ taxa_names(OTU1)[1:10]
 #File: RTC-sputum-alpha-diversity-from-Qiime2.txt
 #Other option: to use built-in diversity functions from the phyloseq package, such as: 
 #plot_richness(OTU1, measures=c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson", "Fisher"))
-diversity=read.table ("RTC-sputum-alpha-diversity-from-Qiime2.txt", header=TRUE)  #using alpha-diversity values exported directly from Qiime2
+diversity=read.table ("RTC-sputum-alpha-diversity-from-Qiime2.txt", header=TRUE)  #using alpha-diversity values exported directly 
+                                                                                  #from Qiime2
 
 diversity <- merge(diversity, metadata,by="SampleID")
 
