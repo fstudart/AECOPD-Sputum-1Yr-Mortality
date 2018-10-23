@@ -29,6 +29,7 @@ qiime dada2 denoise-paired \
   --p-trunc-len-f 241 \
   --p-trunc-len-r 175 \
   --o-denoising-stats Sputum-denoising-stats.qza
+
 qiime feature-table summarize \
   --i-table Sputum-dada2.qza \
   --o-visualization Sputum-dada2.qzv
@@ -808,8 +809,11 @@ phylum_graph
 
 #Creating factors for graphs
 seq <- factor(dat$Phylum)
+
 seq <- c("Firmicutes", "Proteobacteria", "Bacteroidetes", "Actinobacteria", "Fusobacteria", "Others") 
+
 dat$Phylum <- factor(dat$Phylum, levels = c(seq))    
+
 seq_group <- factor(c("Non-Survivors","Survivors"))
 
 seq_group <- factor(dat$Mortality_1Year, c("Non-Survivors","Survivors"))
@@ -903,11 +907,15 @@ genus_graph
 
 #Creating factors for graphs
 seq_g <- factor(dat_g$Genus)
+
 seq_g <- c("Streptococcus", "Prevotella 7", "Rothia", "Haemophilus", "Veillonella",   
            "Pseudomonas", "Lactobacillus", "Prevotella", "Leptotrichia", "Actinomyces", "Gemella",  
            "Neisseria", "Staphylococcus", "Granulicatella", "Others")
+
 dat_g$Genus <- factor(dat_g$Genus, levels = c(seq_g))    
+
 seq_group <- factor(c("Non-Survivors","Survivors"))
+
 seq_group <- factor(dat_g$Mortality_1Year, c("Non-Survivors","Survivors"))
 
 #Using a customized Color Palette
