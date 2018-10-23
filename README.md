@@ -10,7 +10,7 @@ In the Directory:/Files_used_analysis, the data files used for analysis in the m
 
 2) Metadata file: 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt	
 
-3) Phylogenetic tree file: tree.nwk
+3) Phylogenetic tree file (rooted): tree.nwk
 
 4) Values for alpha diversity metrics - exported from QIIME2™: RTC-sputum-alpha-diversity-from-Qiime2.txt
 
