@@ -767,7 +767,7 @@ OTU_taxa_genus <- OTU3 %>%
 
 write.table(OTU_taxa_genus, file = "erie_taxa_genus.csv", sep = ",", col.names = NA, qmethod = "double")
 
-##################################################Phylum Level#########################################################################
+#########################################################Phylum Level#################################################################
 # Creating table, number of features for each Phylum
 table(tax_table(OTU3)[, "Phylum"], exclude = NULL)
 
