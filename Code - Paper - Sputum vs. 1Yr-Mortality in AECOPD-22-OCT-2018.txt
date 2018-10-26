@@ -43,7 +43,8 @@ qiime metadata tabulate \
   --o-visualization Sputum-denoising-stats.qzv
 
 #Extraction Negative Controls
-#Place all fastq.gz files (both forward and reverse files from the seven extraction negative controls) into the same folder; in this example: EN-7-Samples
+#Place all fastq.gz files (both forward and reverse files from the seven extraction negative controls) into the same folder; 
+ in this example: EN-7-Samples
 #Note: All sequencing data already demultiplexed!
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
