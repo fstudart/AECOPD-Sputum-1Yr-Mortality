@@ -91,9 +91,9 @@ qiime feature-table summarize \
   --i-table EN-data2-contingency-filtered-table.qza \
   --o-visualization EN-data2-contingency-filtered-table.qzv
 
-# Visualize and export features (i.e., ASVs) observed in EN-data2-contingency-filtered-table.qza using Qiime2View 
-# After exporting, save this new file as Sequences-at-least3-controls.tsv
-# Keep only ASVs (EN-rep-seqs.qza) present in Sequences-at-least3-controls.tsv 
+#Visualize and export features (i.e., ASVs) observed in EN-data2-contingency-filtered-table.qza using Qiime2View 
+#After exporting, save this new file as Sequences-at-least3-controls.tsv
+#Keep only ASVs (EN-rep-seqs.qza) present in Sequences-at-least3-controls.tsv 
 qiime feature-table filter-seqs \
 --i-data EN-rep-seqs.qza \
 --m-metadata-file Sequences-at-least3-controls.tsv \
@@ -136,9 +136,9 @@ qiime feature-table summarize \
   --i-table Filtered-Sputum-table-contingency-table.qza \
   --o-visualization Filtered-Sputum-table-contingency-table.qzv
 
-# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View
-# After exporting, save this new file as "Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv"
-# Keep only ASVs (Sputum-rep-seqs.qza) observed in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv 
+#Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View
+#After exporting, save this new file as "Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv"
+#Keep only ASVs (Sputum-rep-seqs.qza) observed in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv 
 
 qiime feature-table filter-seqs \
 --i-data Sputum-rep-seqs.qza \
@@ -188,9 +188,9 @@ qiime feature-table summarize \
   --o-visualization Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
 
-# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza 
+#Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza 
   using Qiime2View => save as Final-Sputum-features-to-keep.tsv
-# Keep only ASVs (Filtered-Sputum-rep-seqs.qza) present in Final-Sputum-features-to-keep.tsv
+#Keep only ASVs (Filtered-Sputum-rep-seqs.qza) present in Final-Sputum-features-to-keep.tsv
 
 qiime feature-table filter-seqs \
 --i-data Filtered-Sputum-rep-seqs.qza \
@@ -357,7 +357,7 @@ qiime tools export \
 #Renaming exported GU distance matrix
 mv exported/distance-matrix.tsv exported/GU-distance-matrix.txt
 
-# Move one directory up: cd .. 
+#Move one directory up: cd .. 
 #Collapsing Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza at genus level
 #Taxonomic database: Silva 132
 
