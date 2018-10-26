@@ -481,7 +481,7 @@ packageVersion('vegan')
 #Setting working directory
 setwd("C:/Users/ferna/Desktop/Sputum-Mortality-Paper-codes")
 
-########################################### Alpha and beta diversity analyses########################################################## 
+########################################### Alpha and beta diversity analyses######################################################### 
 # Importing files (BIOM - rarefied, metadata and tree file)
 biom <-import_biom("102-Sputum-rarefied-with-taxonomy.biom")
 map <-import_qiime_sample_data("102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt")
@@ -676,12 +676,14 @@ dev.off()
 par(mar=c(8,8,4,4))
 png(file = "GU_alpha_0.5-Qiime2.png", height = 7, width = 7, units = "in", res = 800)
 plot(GU_alpha_0.5_OTU1, cex=1.2, pch=15:16, main="GU_alpha_0.5-Qiime2", cex.lab=1.6,
-     ylab='', xlab ='', hull=FALSE, ellipse=FALSE, lwd=1, label=F, font.lab = 2, font.axis=2, cex.axis=1.3, col =   c("#00AFBB",  "#FC4E07"))
+     ylab='', xlab ='', hull=FALSE, ellipse=FALSE, lwd=1, label=F, font.lab = 2, font.axis=2, cex.axis=1.3, 
+     col = c("#00AFBB", "#FC4E07"))
 lines(c(-0.7, 0.8), c(0.0,0.0), type = "l", lty = "dashed", col = "black", lwd=1.2)
 lines(c(0.0,0.0), c(-0.6,0.5), type = "l", lty = "dashed", col = "black", lwd=1.2)
 ordispider(GU_alpha_0.5_OTU1, groups_mortality, lwd=0.5, col = c("#00AFBB",  "#FC4E07"))
 points(GU_alpha_0.5_OTU1$centroids[,1:2], pch=20, cex=2.0, col = c("#00AFBB",  "#FC4E07"))
-ordilabel(scores(GU_alpha_0.5_OTU1, "centroids"), labels=c("NS","S"), cex=1.2, font=2, fill= c("#00AFBB",  "#FC4E07"), col="white", lwd=1)
+ordilabel(scores(GU_alpha_0.5_OTU1, "centroids"), labels=c("NS","S"), cex=1.2, font=2, fill= c("#00AFBB",  "#FC4E07"), 
+          col="white", lwd=1)
 title(xlab="PC1 (23.0% Explained)", line=2.8, cex.lab=1.4, font.lab = 2)
 title(ylab="PC2 (13.4% Explained)", line=2.5, cex.lab=1.4, font.lab = 2)
 dev.off()
@@ -767,7 +769,7 @@ OTU_taxa_genus <- OTU3 %>%
 
 write.table(OTU_taxa_genus, file = "erie_taxa_genus.csv", sep = ",", col.names = NA, qmethod = "double")
 
-#########################################################Phylum Level#################################################################
+#########################################################Phylum Level################################################################
 # Creating table, number of features for each Phylum
 table(tax_table(OTU3)[, "Phylum"], exclude = NULL)
 
@@ -868,7 +870,7 @@ dat %>%
 Mortality_1Year_phylum.results %>%
   knitr::kable()
 
-#########################################################Genus Level###################################################################
+#########################################################Genus Level##################################################################
 # Creating table, number of features for each Genus
 table(tax_table(OTU3)[, "Genus"], exclude = NULL)
 
