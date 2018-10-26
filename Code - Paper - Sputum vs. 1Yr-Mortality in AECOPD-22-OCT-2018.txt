@@ -442,11 +442,10 @@ Part II – R
 2) BIOM file (rarefied): 102-Sputum-rarefied-with-taxonomy.biom (for alpha and beta diversity analyses)
 3) BIOM file (not rarefied): 102-Sputum-not-rarefied-with-taxonomy.biom (for making taxa bar plots at phylum and genus levels)
 4) Tree file: tree.nwk
-5) File with values for alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): 
+5) File with values of alpha diversity metrics (Richness, Shannon, Evenness and Faith’s PD - obtained from QIIME2): 
    RTC-sputum-alpha-diversity-from-Qiime2.txt (This is Optional!)
 6) Generalized Unifrac distance matrix (alpha=0.5) exported from QIIME2: GU-distance-matrix.txt
 
-#R Code used for Sputum vs. 1-Year Mortality Analysis in AECOPD
 #Packages loaded during R session
 library(phyloseq)
 library(BiocStyle)
@@ -482,7 +481,7 @@ packageVersion('vegan')
 #Setting working directory
 setwd("C:/Users/ferna/Desktop/Sputum-Mortality-Paper-codes")
 
-#PART I - Alpha and beta diversity analyses 
+########################################### Alpha and beta diversity analyses########################################################## 
 # Importing files (BIOM - rarefied, metadata and tree file)
 biom <-import_biom("102-Sputum-rarefied-with-taxonomy.biom")
 map <-import_qiime_sample_data("102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt")
@@ -522,9 +521,9 @@ taxa_names(OTU1)[1:10]
 #File: RTC-sputum-alpha-diversity-from-Qiime2.txt
 #Other option: to use built-in diversity functions from the phyloseq package, such as: 
 #plot_richness(OTU1, measures=c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson", "Fisher"))
+
 diversity=read.table ("RTC-sputum-alpha-diversity-from-Qiime2.txt", header=TRUE)  #using alpha-diversity values exported directly 
                                                                                   #from Qiime2
-
 diversity <- merge(diversity, metadata,by="SampleID")
 
 diversity$Mortality_1Year <- factor(diversity$Mortality_1Year,
@@ -708,7 +707,7 @@ anosim(dat = Dist_GU_alpha_0.5, grouping = groups_mortality, permutations = 1000
 beta_binary_Mortality_1Year <- betadisper(Dist_GU_alpha_0.5, sampledf$Mortality_1Year)
 permutest(beta_binary_Mortality_1Year)
 
-#PART II - Taxa bar plots
+#########################################################Taxa bar plots################################################################
 # Importing BIOM (not rarefied file)
 # Map and tree files already imported! 
 biom_not_rarefied <-import_biom ("102-Sputum-not-rarefied-with-taxonomy.biom")
@@ -768,7 +767,7 @@ OTU_taxa_genus <- OTU3 %>%
 
 write.table(OTU_taxa_genus, file = "erie_taxa_genus.csv", sep = ",", col.names = NA, qmethod = "double")
 
-#Part III - Phylum Level
+##################################################Phylum Level#########################################################################
 # Creating table, number of features for each Phylum
 table(tax_table(OTU3)[, "Phylum"], exclude = NULL)
 
@@ -869,7 +868,7 @@ dat %>%
 Mortality_1Year_phylum.results %>%
   knitr::kable()
 
-#Part IV - Genus Level
+#########################################################Genus Level###################################################################
 # Creating table, number of features for each Genus
 table(tax_table(OTU3)[, "Genus"], exclude = NULL)
 
@@ -976,7 +975,7 @@ Mortality_1Year_genus.results %>%
 #Session Info
 devtools::session_info()
 
-Session info -----------------------------------------------------------------------------------------------------------------------------------
+Session info --------------------------------------------------------------------------------------------------------------------------
  setting  value                       
  version  R version 3.4.4 (2018-03-15)
  system   x86_64, mingw32             
@@ -986,7 +985,7 @@ Session info -------------------------------------------------------------------
  tz       America/Los_Angeles         
  date     2018-10-22                  
 
-Packages ---------------------------------------------------------------------------------------------------------------------------------------
+Packages ------------------------------------------------------------------------------------------------------------------------------
  package       * version   date       source                                 
  acepack         1.4.1     2016-10-29 CRAN (R 3.4.3)                         
  ade4            1.7-10    2017-12-15 CRAN (R 3.4.3)                         
