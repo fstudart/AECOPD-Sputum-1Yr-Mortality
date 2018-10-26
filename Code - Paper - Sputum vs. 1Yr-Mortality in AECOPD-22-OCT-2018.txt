@@ -139,6 +139,7 @@ qiime feature-table summarize \
 # Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table.qza using Qiime2View
 # After exporting, save this new file as "Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv"
 # Keep only ASVs (Sputum-rep-seqs.qza) observed in Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv 
+
 qiime feature-table filter-seqs \
 --i-data Sputum-rep-seqs.qza \
 --m-metadata-file Seqs-to-keep-after-controls-at-least3-and-removal-low-abundant-features.tsv \
@@ -175,6 +176,7 @@ qiime feature-table summarize \
 #Removing samples with very low number of reads (these samples would be removed during rarefaction step for alpha and beta 
 diversity analyses)
 #Samples removed: COPD-049; COPD-086; COPD-090; COPD-093.
+
 qiime feature-table filter-samples \
 --i-table Filtered-Sputum-table-contingency-table-with-phylum.qza \
 --m-metadata-file Samples-to-not-keep-for-rarefaction-4.tsv \
@@ -186,8 +188,10 @@ qiime feature-table summarize \
   --o-visualization Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
 
-# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza using Qiime2View => save as Final-Sputum-features-to-keep.tsv
+# Visualize and export features (i.e., ASVs) observed in Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza 
+  using Qiime2View => save as Final-Sputum-features-to-keep.tsv
 # Keep only ASVs (Filtered-Sputum-rep-seqs.qza) present in Final-Sputum-features-to-keep.tsv
+
 qiime feature-table filter-seqs \
 --i-data Filtered-Sputum-rep-seqs.qza \
 --m-metadata-file Final-Sputum-features-to-keep.tsv \
@@ -234,6 +238,7 @@ qiime taxa barplot \
 
 #Alpha and beta diversity analyses – 102 patients 
 #Rarefaction cut off: 6,430 (lowest number of reads observed across all samples)
+
 qiime diversity core-metrics-phylogenetic \
   --i-phylogeny rooted-tree-Final-Sputum.qza \
   --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
@@ -244,6 +249,7 @@ qiime diversity core-metrics-phylogenetic \
 #Move to Core-metric-results folder
 #Copy metadata file (102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv) to Core-metric-results folder
 #Alpha diversity 
+
 qiime diversity alpha-group-significance \
   --i-alpha-diversity faith_pd_vector.qza \
   --m-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv \
@@ -304,6 +310,7 @@ qiime diversity beta-group-significance \
 #Plugin used: beta-phylogenetic-alt: Beta diversity (phylogenetic) - High Performance Computation
 #Move one directory up: cd .. 
 #Obtaining feature table at the same sampling depth (rarefaction cut-off: 6,430 reads)
+
 qiime feature-table rarefy \
   --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
   --p-sampling-depth 6430 \
@@ -342,6 +349,7 @@ qiime emperor plot \
 --o-visualization Mortality-alpha-0.5-generalized_unifrac_emperor.qzv
 
 #Exporting Generalized Unifrac distance matrix (alpha 0.5)
+
 qiime tools export \
  --input-path Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza \
  --output-path exported
@@ -352,6 +360,7 @@ mv exported/distance-matrix.tsv exported/GU-distance-matrix.txt
 # Move one directory up: cd .. 
 #Collapsing Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza at genus level
 #Taxonomic database: Silva 132
+
 qiime taxa collapse \
   --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
   --i-taxonomy Final-Taxonomy132-after-phylum-102-samples.qza \
@@ -363,8 +372,9 @@ qiime feature-table summarize \
   --o-visualization Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qzv \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv 
 
-#Exporting collapsed feature table (Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides number 
-of reads for all taxa (up to genus level) across all samples (according to SampleID)
+#Exporting collapsed feature table (Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): 
+  provides number of reads for all taxa (up to genus level) across all samples (according to SampleID)
+
 qiime tools export \
  --input-path Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
  --output-path Collapsed-Table
@@ -389,6 +399,7 @@ qiime feature-table summarize \
   --m-sample-metadata-file 102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.tsv
 
 #Exporting binary collapsed feature table (Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza): provides information regarding presence or absence for all taxa (up to genus level) across all samples (according to SampleID)
+
 qiime tools export \
  --input-path Binary-Collapsed-Table/Binary-Collapsed-Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza \
  --output-path Binary-Collapsed-Table
@@ -418,6 +429,7 @@ qiime tools export \
 #Save this new file as "taxonomy1.tsv"
 #Editing taxonomy1.tsv to remove D_0; D_1,… (Optional)
 #Adding taxonomic information to BIOM file (102-Sputum-not-rarefied.biom)
+
 biom add-metadata -i Exported/102-Sputum-not-rarefied.biom -o Exported/102-Sputum-not-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
 
 #Exporting Feature Table – rarefied (Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza) as BIOM file
@@ -483,7 +495,7 @@ packageVersion('vegan')
 setwd("C:/Users/ferna/Desktop/Sputum-Mortality-Paper-codes")
 
 ########################################### Alpha and beta diversity analyses######################################################### 
-# Importing files (BIOM - rarefied, metadata and tree file)
+#Importing files (BIOM - rarefied, metadata and tree file)
 biom <-import_biom("102-Sputum-rarefied-with-taxonomy.biom")
 map <-import_qiime_sample_data("102-patients-Sputum-25-AUG-2018-all-1-year-follow-up.txt")
 tree <- read.tree("tree.nwk")
@@ -637,7 +649,7 @@ class (Dist_GU_alpha_0.5)
 ord_GU_alpha_0.5 = ordinate(OTU1, method = "PCoA", distance = Dist_GU_alpha_0.5)
 plot_scree(ord_GU_alpha_0.5, "Scree Plot: GU_alpha-0.5")
 
-# make a data frame from the sample_data
+#Making a data frame from the sample_data
 sampledf <- data.frame(sample_data(OTU1))
 
 #Ordination - Mortality_1Year - PCoA - GUF (alpha 0.5) from Qiime2
@@ -661,12 +673,12 @@ p1 = plot_ordination(OTU1, ord_GU_alpha_0.5, type="samples", color="Mortality_1Y
 
 print(p1)
 
-## Obtaining centroids for PcoA plot using betadisper function from vegan 
+#Obtaining centroids for PcoA plot using betadisper function from vegan 
 groups_mortality <- sampledf[["Mortality_1Year"]]
 GU_alpha_0.5_OTU1 <-betadisper(Dist_GU_alpha_0.5, groups_mortality, type=c("centroid"))
 anova(GU_alpha_0.5_OTU1)
 
-##Betadisper from Vegan - GU alpha 0.5 distance matrix
+#Betadisper from Vegan - GU alpha 0.5 distance matrix
 #Identifying values for each PCoA axes
 #We will only use the first two axes, the most important ones in the graph.
 labs <- paste("Dimension", 1:4, "(", round(100*GU_alpha_0.5_OTU1$eig / sum(GU_alpha_0.5_OTU1$eig), 2), "%)")
@@ -689,30 +701,30 @@ title(xlab="PC1 (23.0% Explained)", line=2.8, cex.lab=1.4, font.lab = 2)
 title(ylab="PC2 (13.4% Explained)", line=2.5, cex.lab=1.4, font.lab = 2)
 dev.off()
 
-## Within-group dispersion that PERMDISP is testing
+#Within-group dispersion that PERMDISP is testing
 boxplot(GU_alpha_0.5_OTU1)
 
-## pairwise p-values
+#pairwise p-values
 TukeyHSD(GU_alpha_0.5_OTU1)
 
-# Adonis test - Mortality_1Year
+#Adonis test - Mortality_1Year
 adonis(Dist_GU_alpha_0.5 ~ Mortality_1Year, data = sampledf)
 
-# Adonis test - Mortality_1Year (with adjustments for several confounders)
+#Adonis test - Mortality_1Year (with adjustments for several confounders)
 #SCI = Seattle Comorbidity Index
 adonis(Dist_GU_alpha_0.5 ~ Mortality_1Year + age + gender + SCI + Smoking + 
          Antibiotic_use + AECOPD_1yr + O2_SUPPLEMENT, data = sampledf, permutations=10000) 
 
-# ANOSIM test - Mortality_1Year
+#ANOSIM test - Mortality_1Year
 anosim(dat = Dist_GU_alpha_0.5, grouping = groups_mortality, permutations = 10000) 
 
-# Homogeneity of dispersion test - Mortality_1Year
+#Homogeneity of dispersion test - Mortality_1Year
 beta_binary_Mortality_1Year <- betadisper(Dist_GU_alpha_0.5, sampledf$Mortality_1Year)
 permutest(beta_binary_Mortality_1Year)
 
 #########################################################Taxa bar plots################################################################
-# Importing BIOM (not rarefied file)
-# Map and tree files already imported! 
+#Importing BIOM (not rarefied file)
+#Map and tree files already imported! 
 biom_not_rarefied <-import_biom ("102-Sputum-not-rarefied-with-taxonomy.biom")
 
 #Creating phyloseq object
@@ -729,7 +741,7 @@ colnames(tax_table(OTU2)) <- c("Kingdom", "Phylum", "Class",
 OTU3 <- prune_taxa(taxa_sums (OTU2) > 0, OTU2)
 OTU3
 
-# Histogram of sample read counts
+#Histogram of sample read counts
 smin <- min(sample_sums(OTU3))
 smean <- mean(sample_sums(OTU3))
 smax <- max(sample_sums(OTU3))
@@ -771,7 +783,7 @@ OTU_taxa_genus <- OTU3 %>%
 write.table(OTU_taxa_genus, file = "erie_taxa_genus.csv", sep = ",", col.names = NA, qmethod = "double")
 
 #########################################################Phylum Level################################################################
-# Creating table, number of features for each Phylum
+#Creating table, number of features for each Phylum
 table(tax_table(OTU3)[, "Phylum"], exclude = NULL)
 
 #Converting to Relative Abundance
@@ -780,22 +792,22 @@ OTU3_rel= transform_sample_counts(OTU3, function(x) x / sum(x) )
 #Agglomerating taxa of the same type at the Phylum level (phyloseq object: OTU3_rel)
 glom <- tax_glom(OTU3_rel, taxrank = 'Phylum')
 
-# Creating a dataframe in long format from new phyloseq object (glom)
+#Creating a dataframe in long format from new phyloseq object (glom)
 dat <- psmelt(glom)
 
-# Converting factor "Phylum" to a character vector 
+#Converting factor "Phylum" to a character vector 
 dat$Phylum <- as.character(dat$Phylum)
 
-# Grouping by Phylum ==> calculating mean Relative Abundance
+#Grouping by Phylum ==> calculating mean Relative Abundance
 mean <- ddply(dat, ~Phylum, function(x) c(mean=mean(x$Abundance)))
 
-# Identifying Phyla whose Relative Abundance mean is less than 2%
+#Identifying Phyla whose Relative Abundance mean is less than 2%
 Others <- mean[mean$mean <= 0.02,]$Phylum
 
-# Relabing less abundant Phyla as "Others" 
+#Relabing less abundant Phyla as "Others" 
 dat[dat$Phylum %in% Others,]$Phylum <- 'Others'
 
-# Visualizing boxplot (most abundant Phyla + Others)
+#Visualizing boxplot (most abundant Phyla + Others)
 ggplot(dat,
        aes(x=Phylum,
            y=Abundance)) + geom_boxplot() + coord_flip()
@@ -872,28 +884,28 @@ Mortality_1Year_phylum.results %>%
   knitr::kable()
 
 #########################################################Genus Level##################################################################
-# Creating table, number of features for each Genus
+#Creating table, number of features for each Genus
 table(tax_table(OTU3)[, "Genus"], exclude = NULL)
 
 #Agglomerating taxa of the same type at the Genus level (phyloseq object: OTU3_rel)
 glom_g <- tax_glom(OTU3_rel, taxrank = 'Genus')
 
-# Creating a dataframe in long format from new phyloseq object (glom_g)
+#Creating a dataframe in long format from new phyloseq object (glom_g)
 dat_g <- psmelt(glom_g)
 
-# Converting factor "Genus" to a character vector 
+#Converting factor "Genus" to a character vector 
 dat_g$Genus <- as.character(dat_g$Genus)
 
-# Grouping by Genus ==> calculating mean Relative Abundance
+#Grouping by Genus ==> calculating mean Relative Abundance
 mean_g <- ddply(dat_g, ~Genus, function(x) c(mean=mean(x$Abundance)))
 
-# Identifying Genera whose Relative Abundance mean is less than 1%
+#Identifying Genera whose Relative Abundance mean is less than 1%
 Others <- mean_g[mean_g$mean <= 0.01,]$Genus
 
-# Relabing less abundant Genus as "Others" 
+#Relabing less abundant Genus as "Others" 
 dat_g[dat_g$Genus %in% Others,]$Genus <- 'Others'
 
-# Visualizing boxplot (most abundant Genus + Others)
+#Visualizing boxplot (most abundant Genus + Others)
 ggplot(dat_g,
        aes(x=Genus,
            y=Abundance)) + geom_boxplot() + coord_flip()
