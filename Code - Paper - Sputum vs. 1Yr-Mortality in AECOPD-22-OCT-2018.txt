@@ -899,7 +899,7 @@ dat_g$Genus <- as.character(dat_g$Genus)
 #Grouping by Genus ==> calculating mean Relative Abundance
 mean_g <- ddply(dat_g, ~Genus, function(x) c(mean=mean(x$Abundance)))
 
-#Identifying Genera whose Relative Abundance mean is less than 1%
+#Identifying Genera whose mean Relative Abundance is less than 1%
 Others <- mean_g[mean_g$mean <= 0.01,]$Genus
 
 #Relabing less abundant Genus as "Others" 
