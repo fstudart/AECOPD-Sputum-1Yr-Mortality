@@ -1,5 +1,5 @@
 #Data files used for analysis in the manuscript "Sputum Microbiome is Associated With 1-Year Mortality Following COPD Hospitalizations" 
-#Status: Manuscript Submitted (Under Revision - R2)
+#Status: Manuscript Published (https://www.ncbi.nlm.nih.gov/pubmed/30376356)
 Authors: Leitao Filho et al. 
 
 NOTE: 10 sputum samples provided very low number of sequencing reads and thus were excluded during downstream analysis:
