@@ -716,7 +716,7 @@ adonis(Dist_GU_alpha_0.5 ~ Mortality_1Year + age + gender + SCI + Smoking +
          Antibiotic_use + AECOPD_1yr + O2_SUPPLEMENT, data = sampledf, permutations=10000) 
 
 #ANOSIM test - Mortality_1Year
-anosim(dat = Dist_GU_alpha_0.5, grouping = groups_mortality, permutations = 10000) 
+anosim(Dist_GU_alpha_0.5, grouping = groups_mortality, permutations = 10000) 
 
 #Homogeneity of dispersion test - Mortality_1Year
 beta_binary_Mortality_1Year <- betadisper(Dist_GU_alpha_0.5, sampledf$Mortality_1Year)
