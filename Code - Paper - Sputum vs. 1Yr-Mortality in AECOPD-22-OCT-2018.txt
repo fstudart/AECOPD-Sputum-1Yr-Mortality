@@ -326,7 +326,7 @@ qiime diversity beta-phylogenetic-alt \
   --i-table Filtered-Sputum-table-contingency-table-with-phylum-rarefaction-6430.qza \
   --i-phylogeny rooted-tree-Final-Sputum.qza \
   --p-metric generalized_unifrac \
-   --p-alpha 0.5 \
+  --p-alpha 0.5 \
   --o-distance-matrix core-metrics-results/Mortality-alpha-0.5-generalized_unifrac_distance_matrix.qza
 
 #Move to Core-metric-results folder
@@ -358,7 +358,7 @@ qiime tools export \
 mv exported/distance-matrix.tsv exported/GU-distance-matrix.txt
 
 #Move one directory up: cd .. 
-#Collapsing Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza at genus level
+#Collapsing Filtered-Sputum-table-contingency-table-with-phylum-rarefaction.qza at the genus level
 #Taxonomic database: Silva 132
 
 qiime taxa collapse \
@@ -427,7 +427,7 @@ qiime tools export \
 
 #Change the first line of taxonomy.tsv (i.e., the header) to: #OTUID; taxonomy; confidence
 #Save this new file as "taxonomy1.tsv"
-#Editing taxonomy1.tsv to remove D_0; D_1,… (Optional)
+#Editing taxonomy1.tsv to remove D_0__; D_1__,… (Optional)
 #Adding taxonomic information to BIOM file (102-Sputum-not-rarefied.biom)
 
 biom add-metadata -i Exported/102-Sputum-not-rarefied.biom -o Exported/102-Sputum-not-rarefied-with-taxonomy.biom --observation-metadata-fp Exported/taxonomy1.tsv --sc-separated taxonomy
